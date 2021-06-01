@@ -201,7 +201,7 @@ namespace rm // rule machine
     /// link_test ///
 
     class link_test
-        : public link
+        : public link_vecs
     {
     public:
         const std::string name;
@@ -214,18 +214,25 @@ namespace rm // rule machine
 
         void do_action(event* ptr_e)
         {
+            std::string event_name;
             if (ptr_e)
-                std::cout << "link " << name << " * event [ " << ptr_e->name << ", " << ptr_e->id << " ]: action" << std::endl;
+                event_name = ptr_e->name + ", " + std::to_string (ptr_e->id);
             else
-                std::cout << "link " << name << " * event [ NULL ]: action" << std::endl;
+                event_name = "NULL";
+
+            std::cout << "link " << name << " * event [ " << event_name << " ]: action" << std::endl;
         }
 
         bool guard_condition(event* ptr_e)
         {
+            std::string event_name;
             if (ptr_e)
-                std::cout << "link " << name << " * event [ " << ptr_e->name << ", " << ptr_e->id << " ]: guard_condition: true" << std::endl;
+                event_name = ptr_e->name + ", " + std::to_string(ptr_e->id);
             else
-                std::cout << "link " << name << " * event [ NULL ]: guard_condition: true" << std::endl;
+                event_name = "NULL";
+
+            std::cout << "link " << name << " * event [ " << event_name << " ]: guard_condition: true" << std::endl;
+
             return true;
         }
     };
@@ -270,17 +277,23 @@ namespace rm // rule machine
 
         virtual void do_entry_action(event* ptr_e)
         {
+            std::string event_name;
             if (ptr_e)
-                std::cout << "state " << name << " * event [ " << ptr_e->name << ", " << ptr_e->id << " ]: entry action" << std::endl;
+                event_name = ptr_e->name + ", " + std::to_string(ptr_e->id);
             else
-                std::cout << "state " << name << " * event [ NULL ]: entry action" << std::endl;
+                event_name = "NULL";
+
+            std::cout << "state " << name << " * event [ " << event_name << " ]: entry action" << std::endl;
         }
         virtual void do_exit_action(event* ptr_e)
         {
+            std::string event_name;
             if (ptr_e)
-                std::cout << "state " << name << " * event [ " << ptr_e->name << ", " << ptr_e->id << " ]: exit action" << std::endl;
+                event_name = ptr_e->name + ", " + std::to_string(ptr_e->id);
             else
-                std::cout << "state " << name << " * event [ NULL ]: exit action" << std::endl;
+                event_name = "NULL";
+
+            std::cout << "state " << name << " * event [ " << event_name << " ]: exit action" << std::endl;
         }
     };
 

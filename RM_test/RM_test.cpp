@@ -3,7 +3,8 @@
 #pragma once
 
 #include "..//RM/rule_machine.h"
-//#include "Singleton.h"
+#include "..//RM/singleton.h"
+
 #include <iostream>
 #include <list>
 #include <vector>
@@ -14,39 +15,39 @@
 using namespace rm;
 
 
-//void action1(event* e)
-//{
-//    if (e)
-//        std::cout << "action1: event: " << e->id << ", " << e->name << std::endl;
-//    else
-//        std::cout << "action1: event: nullptr, " << std::endl;
-//}
-//
-//void action2(event* e)
-//{
-//    if (e)
-//        std::cout << "action2: event: " << e->id << ", " << e->name << std::endl;
-//    else
-//        std::cout << "action2: event: nullptr, " << std::endl;
-//}
-//
-//bool guard_always_false(event* e)
-//{
-//    if (e)
-//        std::cout << "guard_always_false: event: " << e->id << ", " << e->name << std::endl;
-//    else
-//        std::cout << "guard_always_false: event: nullptr, " << std::endl;
-//    return false;
-//}
-//
-//bool guard_always_true(event* e)
-//{
-//    if (e)
-//        std::cout << "guard_always_true: event: " << e->id << ", " << e->name << std::endl;
-//    else
-//        std::cout << "guard_always_true: event: nullptr, " << std::endl;
-//    return true;
-//}
+void action1(event* e)
+{
+    if (e)
+        std::cout << "action1: event: " << e->id << ", " << e->name << std::endl;
+    else
+        std::cout << "action1: event: NULL " << std::endl;
+}
+
+void action2(event* e)
+{
+    if (e)
+        std::cout << "action2: event: " << e->id << ", " << e->name << std::endl;
+    else
+        std::cout << "action2: event: NULL " << std::endl;
+}
+
+bool guard_always_false(event* e)
+{
+    if (e)
+        std::cout << "guard_always_false: event: " << e->id << ", " << e->name << std::endl;
+    else
+        std::cout << "guard_always_false: event: NULL " << std::endl;
+    return false;
+}
+
+bool guard_always_true(event* e)
+{
+    if (e)
+        std::cout << "guard_always_true: event: " << e->id << ", " << e->name << std::endl;
+    else
+        std::cout << "guard_always_true: event: NULL " << std::endl;
+    return true;
+}
 
 
 
@@ -55,149 +56,149 @@ using namespace rm;
 
 int main()
 {
+    //Singleton& sig = Singleton::getInstance();
 
+    //DOM dom;
+    //dom.reset();
+    //dom.sc_main.show("dom main set---------------");
 
-    DOM dom;
-    dom.reset();
-    dom.sc_main.show("dom main set---------------");
-
-    event ev_next_sub_turn(1, "next_sub_turn");
-    event ev_next_turn(2, "next_turn");
-    event ev_card_on_table(3, "card_on_table");
-    event ev_no_card(4, "no_card");
-
-    rule_machine rm;
-
-    sm_player sm_gamer1(1, &rm);
-    rm.add_sm(&sm_gamer1);
-    st_turn st_turn_obj1(sm_gamer1);
-    sm_gamer1.add_item(ev_next_turn.id, nullptr, &st_turn_obj1, &st_turn_obj1, true);
-    sm_gamer1.add_item(ev_next_sub_turn.id, nullptr, &st_turn_obj1, &st_turn_obj1);
-
-    sm_player sm_gamer2(2, &rm);
-    rm.add_sm(&sm_gamer2);
-    st_turn st_turn_obj2(sm_gamer2);
-    sm_gamer2.add_item(ev_next_turn.id, nullptr, &st_turn_obj2, &st_turn_obj2, true);
-    sm_gamer2.add_item(ev_next_sub_turn.id, nullptr, &st_turn_obj2, &st_turn_obj2);
-
-    sm_play sm_game(&rm);
-    rm.add_sm(&sm_game);
-    st_pre_game st_pre_game_obj(sm_game);
-    st_game st_game_obj(sm_game);
-    state st_end_obj("state end");
-    ln_end ln_end_obj(sm_game);
-    ln_first_turn ln_first_turn_obj(sm_game);
-    ln_com_turn ln_com_turn_obj(sm_game);
-    sm_game.add_item(ev_card_on_table.id, &ln_first_turn_obj, &st_pre_game_obj, &st_game_obj, true);
-    sm_game.add_item(ev_card_on_table.id, &ln_com_turn_obj, &st_game_obj, &st_game_obj);
-    sm_game.add_item(ev_no_card.id, &ln_end_obj, &st_game_obj, &st_end_obj);
-
-    sm_gamer1.check_obj();
-    sm_gamer2.check_obj();
-    sm_game.check_obj();
-
-    //card_set cs1, cs2;
-    //while (true)
-    //{
-    //    if (!cs.move_card_f2b(cs1)) break;
-    //    if (!cs.move_card_f2b(cs2)) break;
-    //}
-    //cs.show("cs");
-    //cs1.show("cs1");
-    //cs2.show("cs2");
-
-    //rm::event e(111, "e111");
-    //std::cout << "id=" << e.id << std::endl;
-    //std::cout << "name=" << e.name << std::endl; 
-
-    //link_test1 link1;
-    //link1.add_action(action1);
-    //link1.add_action(action2);
-    //link1.do_action(&e);
-
-    //rm::event e11(101, "e1->2");
-    //rm::event e12(102, "e2->3");
-    //rm::event e13(103, "e3->1");
-    //rm::event e21(201, "e2->1");
-    //rm::event e22(202, "e3->2");
-    //rm::event e23(203, "e1->3");
-
-    //state_test s1("state1");
-    //state_test s2("state2");
-    //state_test s3("state3");
-
-    //link_test l1("link1");
-    //link_test l2("link2");
-    ////link_test l3("link3");
-    //
-    //link_vecs l3_1;
-    //l3_1.add_guard(guard_always_false);
-    //link_vecs l3_2;
-    //l3_2.add_guard(guard_always_true);
+    //event ev_next_sub_turn(1, "next_sub_turn");
+    //event ev_next_turn(2, "next_turn");
+    //event ev_card_on_table(3, "card_on_table");
+    //event ev_no_card(4, "no_card");
 
     //rule_machine rm;
-    //state_machine sm (10, &rm);
-    //rm.add_sm(&sm);
 
-    //sm.add_item(101, &l1, &s1, &s2, true);
-    //sm.add_item(102, &l2, &s2, &s3);
-    //sm.add_item(103, &l3_1, &s3, &s1);
-    //sm.add_item(103, &l3_2, &s3, &s1);
+    //sm_player sm_gamer1(1, &rm);
+    //rm.add_sm(&sm_gamer1);
+    //st_turn st_turn_obj1(sm_gamer1);
+    //sm_gamer1.add_item(ev_next_turn.id, nullptr, &st_turn_obj1, &st_turn_obj1, true);
+    //sm_gamer1.add_item(ev_next_sub_turn.id, nullptr, &st_turn_obj1, &st_turn_obj1);
 
-    //sm.add_item(201, nullptr, &s2, &s1);
-    //sm.add_item(202, nullptr, &s3, &s2);
-    //sm.add_item(203, nullptr, &s1, &s3);
+    //sm_player sm_gamer2(2, &rm);
+    //rm.add_sm(&sm_gamer2);
+    //st_turn st_turn_obj2(sm_gamer2);
+    //sm_gamer2.add_item(ev_next_turn.id, nullptr, &st_turn_obj2, &st_turn_obj2, true);
+    //sm_gamer2.add_item(ev_next_sub_turn.id, nullptr, &st_turn_obj2, &st_turn_obj2);
 
-    //sm.set_status(status::enabled);
-    //std::cout << std::endl;
-    //sm.set_status(status::paused);
-    //sm.set_status(status::disabled);
-    //sm.set_status(status::enabled);
-    //std::cout << std::endl;
+    //sm_play sm_game(&rm);
+    //rm.add_sm(&sm_game);
+    //st_pre_game st_pre_game_obj(sm_game);
+    //st_game st_game_obj(sm_game);
+    //state st_end_obj("state end");
+    //ln_end ln_end_obj(sm_game);
+    //ln_first_turn ln_first_turn_obj(sm_game);
+    //ln_com_turn ln_com_turn_obj(sm_game);
+    //sm_game.add_item(ev_card_on_table.id, &ln_first_turn_obj, &st_pre_game_obj, &st_game_obj, true);
+    //sm_game.add_item(ev_card_on_table.id, &ln_com_turn_obj, &st_game_obj, &st_game_obj);
+    //sm_game.add_item(ev_no_card.id, &ln_end_obj, &st_game_obj, &st_end_obj);
 
-    //int a = 1;
-    //int b = 6;
-    //for (int i = 0; i < 50; i++)
-    //{
-    //    std::string res = "";
-    //    switch (rand() % (b - a + 1) + a)
-    //    {
-    //    case 1:
-    //        std::cout << "strike event: e101" << std::endl << "<" << std::endl;
-    //        res = sm.recv_triggering_event(&e11);
-    //        break;
+    //sm_gamer1.check_obj();
+    //sm_gamer2.check_obj();
+    //sm_game.check_obj();
 
-    //    case 2:
-    //        std::cout << "strike event: e102" << std::endl << "<" << std::endl;
-    //        res = sm.recv_triggering_event(&e12);
-    //        break;
+    ////card_set cs1, cs2;
+    ////while (true)
+    ////{
+    ////    if (!cs.move_card_f2b(cs1)) break;
+    ////    if (!cs.move_card_f2b(cs2)) break;
+    ////}
+    ////cs.show("cs");
+    ////cs1.show("cs1");
+    ////cs2.show("cs2");
 
-    //    case 3:
-    //        std::cout << "strike event: e103" << std::endl << "<" << std::endl;
-    //        res = sm.recv_triggering_event(&e13);
-    //        break;
+    rm::event e(111, "e111");
+    std::cout << "id=" << e.id << std::endl;
+    std::cout << "name=" << e.name << std::endl; 
 
-    //    case 4:
-    //        std::cout << "strike event: e201" << std::endl << "<" << std::endl;
-    //        res = sm.recv_triggering_event(&e21);
-    //        break;
+    link_test link1 ("link1");
+    link1.add_action(action1);
+    link1.add_action(action2);
+    link1.do_action(&e);
 
-    //    case 5:
-    //        std::cout << "strike event: e202" << std::endl << "<" << std::endl;
-    //        res = sm.recv_triggering_event(&e22);
-    //        break;
+    rm::event e11(101, "e1->2");
+    rm::event e12(102, "e2->3");
+    rm::event e13(103, "e3->1");
+    rm::event e21(201, "e2->1");
+    rm::event e22(202, "e3->2");
+    rm::event e23(203, "e1->3");
 
-    //    case 6:
-    //        std::cout << "strike event: e203" << std::endl << "<" << std::endl;
-    //        res = sm.recv_triggering_event(&e23);
-    //        break;
-    //    }
-    //    std::cout << "result: " << res << std::endl << ">" << std::endl << std::endl;
-    //}
+    state_test s1("state1");
+    state_test s2("state2");
+    state_test s3("state3");
 
-    //sm.check_obj();
+    link_test l1("link1");
+    link_test l2("link2");
+    //link_test l3("link3");
+    
+    link_test l3_1("link_l3_1");
+    l3_1.add_guard(guard_always_false);
+    link_test l3_2("link_l3_2");
+    l3_2.add_guard(guard_always_true);
 
-    //rm.clear();
+    rule_machine rm;
+    state_machine sm (&rm);
+    rm.add_sm(&sm);
+
+    sm.add_item(101, &l1, &s1, &s2, true);
+    sm.add_item(102, &l2, &s2, &s3);
+    sm.add_item(103, &l3_1, &s3, &s1);
+    sm.add_item(103, &l3_2, &s3, &s1);
+
+    sm.add_item(201, nullptr, &s2, &s1);
+    sm.add_item(202, nullptr, &s3, &s2);
+    sm.add_item(203, nullptr, &s1, &s3);
+
+    sm.set_status(status::enabled);
+    std::cout << std::endl;
+    sm.set_status(status::paused);
+    sm.set_status(status::disabled);
+    sm.set_status(status::enabled);
+    std::cout << std::endl;
+
+    int a = 1;
+    int b = 6;
+    for (int i = 0; i < 50; i++)
+    {
+        std::string res = "";
+        switch (rand() % (b - a + 1) + a)
+        {
+        case 1:
+            std::cout << "strike event: e101" << std::endl << "<" << std::endl;
+            res = sm.recv_triggering_event(&e11);
+            break;
+
+        case 2:
+            std::cout << "strike event: e102" << std::endl << "<" << std::endl;
+            res = sm.recv_triggering_event(&e12);
+            break;
+
+        case 3:
+            std::cout << "strike event: e103" << std::endl << "<" << std::endl;
+            res = sm.recv_triggering_event(&e13);
+            break;
+
+        case 4:
+            std::cout << "strike event: e201" << std::endl << "<" << std::endl;
+            res = sm.recv_triggering_event(&e21);
+            break;
+
+        case 5:
+            std::cout << "strike event: e202" << std::endl << "<" << std::endl;
+            res = sm.recv_triggering_event(&e22);
+            break;
+
+        case 6:
+            std::cout << "strike event: e203" << std::endl << "<" << std::endl;
+            res = sm.recv_triggering_event(&e23);
+            break;
+        }
+        std::cout << "result: " << res << std::endl << ">" << std::endl << std::endl;
+    }
+
+    sm.check_obj();
+
+    rm.clear();
 
     return 0;
 }

@@ -12,11 +12,7 @@ private:
     Singleton* p_instance = nullptr;
 
 public:
-    ~SingletonDestroyer()
-    {
-        if (p_instance)
-            delete p_instance;
-    }
+    ~SingletonDestroyer();
 
     void initialize(Singleton* p)
     {
@@ -50,4 +46,9 @@ public:
     }
 };
 
+SingletonDestroyer::~SingletonDestroyer()
+{
+    if (p_instance)
+        delete p_instance;
+}
 
