@@ -366,16 +366,16 @@ namespace rm // rule machine
     private:
         struct link_to_state
         {
-            link* ptr_link = NULL;
-            state* ptr_state = NULL;
+            link* ptr_link = nullptr;
+            state* ptr_state = nullptr;
         };
 
         std::map<state*, std::multimap<id_t /*event id*/, link_to_state>> state_transitions_tab;
 
         i_event_invoker* invoker;
 
-        state* current_state_ptr = NULL;
-        state* begin_state_ptr = NULL;
+        state* current_state_ptr = nullptr;
+        state* begin_state_ptr = nullptr;
 
         status curr_status = status::disabled;
 
@@ -394,11 +394,11 @@ namespace rm // rule machine
             if (curr_status != status::enabled)
                 return "success: event reject. sm status: not enabled";
 
-            if (e == NULL)
+            if (!e)
                 return "error: event is null";
 
             // test curr state
-            if (current_state_ptr == NULL)
+            if (!current_state_ptr)
                 return "error: current state is null";
 
             // find curr state in tab
@@ -409,29 +409,29 @@ namespace rm // rule machine
             // find links from curr state to new state by event in tab
             auto& mmap_ref = it1->second;
             auto it2 = mmap_ref.equal_range(e->id);
-            link_to_state* ptr_ls = NULL;
+            link_to_state* ptr_ls = nullptr;
             for (auto itr = it2.first; itr != it2.second; ++itr)
             {
                 link* pl = itr->second.ptr_link;
 
-                if (pl == NULL) // if link is null, then success. link can be NULL. Guard condition will not test
+                if (!pl) // if link is null, then success. link can be NULL. Guard condition will not test
                 {
                     ptr_ls = &itr->second;
                     break;
                 }
 
                 // link guard condition 
-                if (pl != NULL)
+                if (pl)
                     if (pl->guard_condition(e) == true)
                     {
                         ptr_ls = &itr->second;
                         break;
                     }
             }
-            if (ptr_ls == NULL)
+            if (!ptr_ls)
                 return "success: event reject or guard condition reject";
 
-            if (ptr_ls->ptr_state == NULL)
+            if (!(ptr_ls->ptr_state))
                 return "error: new state is null";
 
 
@@ -447,7 +447,7 @@ namespace rm // rule machine
             current_state_ptr->do_exit_action(e);
 
             // do link actions
-            if (ptr_ls->ptr_link != NULL)
+            if (ptr_ls->ptr_link)
                 ptr_ls->ptr_link->do_action(e);
 
             // update current state index
@@ -486,7 +486,7 @@ namespace rm // rule machine
                 for (auto& [event_id, link_to_state] : a.second)
                 {
                     std::cout << "\t\tevent ID: " << event_id;
-                    if (link_to_state.ptr_link == NULL)
+                    if (!(link_to_state.ptr_link))
                         std::cout << " null link to ";
                     else
                         std::cout << " not null link to ";
@@ -515,7 +515,7 @@ namespace rm // rule machine
                     break;
                 case status::disabled:
                     current_state_ptr = begin_state_ptr;
-                    current_state_ptr->do_entry_action(NULL);
+                    current_state_ptr->do_entry_action(nullptr);
                     curr_status = status::enabled;
                     break;
                 }

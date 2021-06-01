@@ -9,10 +9,14 @@ class Singleton;  // опережающее объ€вление
 class SingletonDestroyer
 {
 private:
-    Singleton* p_instance = 0;
+    Singleton* p_instance = nullptr;
 
 public:
-    ~SingletonDestroyer();
+    ~SingletonDestroyer()
+    {
+        if (p_instance)
+            delete p_instance;
+    }
 
     void initialize(Singleton* p)
     {
@@ -23,7 +27,7 @@ public:
 class Singleton
 {
 private:
-    inline static Singleton* p_instance = 0;
+    inline static Singleton* p_instance = nullptr;
     inline static SingletonDestroyer destroyer;
 
 protected:
@@ -46,9 +50,4 @@ public:
     }
 };
 
-SingletonDestroyer::~SingletonDestroyer()
-{
-    if (p_instance)
-        delete p_instance;
-}
 

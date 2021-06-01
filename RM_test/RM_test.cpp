@@ -19,7 +19,7 @@ using namespace rm;
 //    if (e)
 //        std::cout << "action1: event: " << e->id << ", " << e->name << std::endl;
 //    else
-//        std::cout << "action1: event: NULL, " << std::endl;
+//        std::cout << "action1: event: nullptr, " << std::endl;
 //}
 //
 //void action2(event* e)
@@ -27,7 +27,7 @@ using namespace rm;
 //    if (e)
 //        std::cout << "action2: event: " << e->id << ", " << e->name << std::endl;
 //    else
-//        std::cout << "action2: event: NULL, " << std::endl;
+//        std::cout << "action2: event: nullptr, " << std::endl;
 //}
 //
 //bool guard_always_false(event* e)
@@ -35,7 +35,7 @@ using namespace rm;
 //    if (e)
 //        std::cout << "guard_always_false: event: " << e->id << ", " << e->name << std::endl;
 //    else
-//        std::cout << "guard_always_false: event: NULL, " << std::endl;
+//        std::cout << "guard_always_false: event: nullptr, " << std::endl;
 //    return false;
 //}
 //
@@ -44,7 +44,7 @@ using namespace rm;
 //    if (e)
 //        std::cout << "guard_always_true: event: " << e->id << ", " << e->name << std::endl;
 //    else
-//        std::cout << "guard_always_true: event: NULL, " << std::endl;
+//        std::cout << "guard_always_true: event: nullptr, " << std::endl;
 //    return true;
 //}
 
@@ -71,14 +71,14 @@ int main()
     sm_player sm_gamer1(1, &rm);
     rm.add_sm(&sm_gamer1);
     st_turn st_turn_obj1(sm_gamer1);
-    sm_gamer1.add_item(ev_next_turn.id, NULL, &st_turn_obj1, &st_turn_obj1, true);
-    sm_gamer1.add_item(ev_next_sub_turn.id, NULL, &st_turn_obj1, &st_turn_obj1);
+    sm_gamer1.add_item(ev_next_turn.id, nullptr, &st_turn_obj1, &st_turn_obj1, true);
+    sm_gamer1.add_item(ev_next_sub_turn.id, nullptr, &st_turn_obj1, &st_turn_obj1);
 
     sm_player sm_gamer2(2, &rm);
     rm.add_sm(&sm_gamer2);
     st_turn st_turn_obj2(sm_gamer2);
-    sm_gamer2.add_item(ev_next_turn.id, NULL, &st_turn_obj2, &st_turn_obj2, true);
-    sm_gamer2.add_item(ev_next_sub_turn.id, NULL, &st_turn_obj2, &st_turn_obj2);
+    sm_gamer2.add_item(ev_next_turn.id, nullptr, &st_turn_obj2, &st_turn_obj2, true);
+    sm_gamer2.add_item(ev_next_sub_turn.id, nullptr, &st_turn_obj2, &st_turn_obj2);
 
     sm_play sm_game(&rm);
     rm.add_sm(&sm_game);
@@ -144,9 +144,9 @@ int main()
     //sm.add_item(103, &l3_1, &s3, &s1);
     //sm.add_item(103, &l3_2, &s3, &s1);
 
-    //sm.add_item(201, NULL, &s2, &s1);
-    //sm.add_item(202, NULL, &s3, &s2);
-    //sm.add_item(203, NULL, &s1, &s3);
+    //sm.add_item(201, nullptr, &s2, &s1);
+    //sm.add_item(202, nullptr, &s3, &s2);
+    //sm.add_item(203, nullptr, &s1, &s3);
 
     //sm.set_status(status::enabled);
     //std::cout << std::endl;
