@@ -423,7 +423,7 @@ namespace rm // rule machine
             auto& mmap_ref = it1->second;
             auto it2 = mmap_ref.equal_range(e->id);
             link_to_state* ptr_ls = nullptr;
-            for (auto itr = it2.first; itr != it2.second; ++itr)
+            for (auto& itr = it2.first; itr != it2.second; ++itr)
             {
                 link* pl = itr->second.ptr_link;
 
