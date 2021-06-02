@@ -26,7 +26,7 @@ namespace rm // rule machine
 
     private:
         event()
-            : id(-1), name("undefined")
+            : id(-1), name("*")
         {
         }
 
