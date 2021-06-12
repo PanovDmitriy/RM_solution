@@ -164,33 +164,51 @@ int main()
         switch (rand() % (b - a + 1) + a)
         {
         case 1:
+        {
             std::cout << "strike event: e101" << std::endl << "<" << std::endl;
-            res = sm.recv_triggering_event(&e11);
+            auto [rez_b, rem] = sm.recv_triggering_event(&e11);
+            res = rez_b ? "Success" : "Error" + rem;
+        }
             break;
 
         case 2:
+        {
             std::cout << "strike event: e102" << std::endl << "<" << std::endl;
-            res = sm.recv_triggering_event(&e12);
+            auto [rez_b, rem] = sm.recv_triggering_event(&e12);
+            res = rez_b ? "Success" : "Error" + rem;
+        }
             break;
 
         case 3:
+        {
             std::cout << "strike event: e103" << std::endl << "<" << std::endl;
-            res = sm.recv_triggering_event(&e13);
+            auto [rez_b, rem] = sm.recv_triggering_event(&e13);
+            res = rez_b ? "Success" : "Error" + rem;
+        }
             break;
 
         case 4:
+        {
             std::cout << "strike event: e201" << std::endl << "<" << std::endl;
-            res = sm.recv_triggering_event(&e21);
+            auto [rez_b, rem] = sm.recv_triggering_event(&e21);
+            res = rez_b ? "Success" : "Error" + rem;
+        }
             break;
 
         case 5:
+        {
             std::cout << "strike event: e202" << std::endl << "<" << std::endl;
-            res = sm.recv_triggering_event(&e22);
+            auto [rez_b, rem] = sm.recv_triggering_event(&e22);
+            res = rez_b ? "Success" : "Error" + rem;
+        }
             break;
 
         case 6:
+        {
             std::cout << "strike event: e203" << std::endl << "<" << std::endl;
-            res = sm.recv_triggering_event(&e23);
+            auto [rez_b, rem] = sm.recv_triggering_event(&e23);
+            res = rez_b ? "Success" : "Error" + rem;
+        }
             break;
         }
         std::cout << "result: " << res << std::endl << ">" << std::endl << std::endl;

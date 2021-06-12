@@ -252,14 +252,32 @@ namespace rm // rule machine
         {
         }
 
+    protected:
         virtual void do_entry_action(event*)
         {
         }
         virtual void do_exit_action(event*)
         {
         }
+        virtual void do_internal_action(event*)
+        {
+        }
 
-        virtual ~state() {}
+    public:
+        void do_activate(event* ptr_e)
+        {
+            do_entry_action(ptr_e);
+            do_internal_action(ptr_e);
+        }
+        void do_unactivate(event* ptr_e)
+        {
+            // todo: break internal action
+            do_exit_action(ptr_e);
+        }
+
+        virtual ~state() 
+        {
+        }
     };
 
     /// end state ///
@@ -275,7 +293,8 @@ namespace rm // rule machine
         {
         }
 
-        virtual void do_entry_action(event* ptr_e)
+    protected:
+        void do_entry_action(event* ptr_e) override
         {
             std::string event_name;
             if (ptr_e)
@@ -285,7 +304,7 @@ namespace rm // rule machine
 
             std::cout << "state " << name << " * event [ " << event_name << " ]: entry action" << std::endl;
         }
-        virtual void do_exit_action(event* ptr_e)
+        void do_exit_action(event* ptr_e) override
         {
             std::string event_name;
             if (ptr_e)
@@ -294,6 +313,16 @@ namespace rm // rule machine
                 event_name = "NULL";
 
             std::cout << "state " << name << " * event [ " << event_name << " ]: exit action" << std::endl;
+        }
+        void do_internal_action(event* ptr_e) override
+        {
+            std::string event_name;
+            if (ptr_e)
+                event_name = ptr_e->name + ", " + std::to_string(ptr_e->id);
+            else
+                event_name = "NULL";
+
+            std::cout << "state " << name << " * event [ " << event_name << " ]: internal action" << std::endl;
         }
     };
 
@@ -317,6 +346,7 @@ namespace rm // rule machine
         {
         }
 
+    protected:
         virtual void do_entry_action(event* ptr_e)
         {
             for (auto action : entry_actions)
@@ -328,6 +358,7 @@ namespace rm // rule machine
                 (*action)(ptr_e);
         }
 
+    public:
         void add_entry_action(const ptr_action_t func)
         {
             entry_actions.push_back(func);
@@ -400,24 +431,26 @@ namespace rm // rule machine
         }
 
     public:
-        std::string recv_triggering_event(event* e)
+        std::tuple <bool, std::string> recv_triggering_event(event* e)
         {
+            // return: success - true, error - false
+
             /// pre conditions ///
 
             if (curr_status != status::enabled)
-                return "success: event reject. sm status: not enabled";
+                return { true, "Event reject. sm status: not enabled" };
 
             if (!e)
-                return "error: event is null";
+                return { false, "Event is null" };
 
             // test curr state
             if (!current_state_ptr)
-                return "error: current state is null";
+                return { false, "Current state is null" };
 
             // find curr state in tab
             auto it1 = state_transitions_tab.find(current_state_ptr);
             if (it1 == state_transitions_tab.end())
-                return "error: current state is not faund";
+                return { false, "Current state is not faund" };
 
             // find links from curr state to new state by event in tab
             auto& mmap_ref = it1->second;
@@ -442,34 +475,34 @@ namespace rm // rule machine
                     }
             }
             if (!ptr_ls)
-                return "success: event reject or guard condition reject";
+                return { true, "State reject event or Link guard condition reject" };
 
             if (!(ptr_ls->ptr_state))
-                return "error: new state is null";
+                return { false, "Target state is null" };
 
 
             auto it3 = state_transitions_tab.find(ptr_ls->ptr_state);
             if (it3 == state_transitions_tab.end())
-                return "error: new state is not faund";
+                return { false, "Target state is not faund" };
 
             /// - ///
 
             /// Ok! change state now! ///
 
-            // do exit actions
-            current_state_ptr->do_exit_action(e);
+            // do unactivate prev (current) state
+            current_state_ptr->do_unactivate(e);
 
             // do link actions
             if (ptr_ls->ptr_link)
                 ptr_ls->ptr_link->do_action(e);
 
-            // update current state index
+            // update current state index, change current state from prev to next
             current_state_ptr = ptr_ls->ptr_state;
 
-            // do entry actions
-            current_state_ptr->do_entry_action(e);
+            // do activate next (current) state
+            current_state_ptr->do_activate(e);
 
-            return "success: ok";
+            return { true, "Ok" };
         }
 
     public:
@@ -528,7 +561,7 @@ namespace rm // rule machine
                     break;
                 case status::disabled:
                     current_state_ptr = begin_state_ptr;
-                    current_state_ptr->do_entry_action(nullptr);
+                    current_state_ptr->do_activate(nullptr);
                     curr_status = status::enabled;
                     break;
                 }
