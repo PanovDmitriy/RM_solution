@@ -24,13 +24,12 @@ namespace rm // rule machine
         const id_t id;
         const std::string name;
 
-    private:
+    public:
         event()
-            : id(-1), name("*")
+            : id(-1), name("begin|end")
         {
         }
 
-    public:
         event(const event& e)
             : id(e.id), name(e.name)
         {
@@ -41,106 +40,33 @@ namespace rm // rule machine
         {
         }
 
-        bool operator == (event e)
+        bool operator == (const event& ref_e)
         {
-            return id == e.id;
+            return id == ref_e.id;
         }
-        bool operator != (event e)
+        bool operator != (const event& ref_e)
         {
-            return id != e.id;
+            return !(id == ref_e.id);
         }
 
         virtual ~event() {}
     };
 
-    //exaples:
-    // 
-    //class event_str
-    //    : public event
-    //{
-    //private:
-    //    std::string param;
-
-    //public:
-    //    event_str(std::string _param)
-    //        : event (100, "test1"), param (_param)
-    //    {
-    //    }
-
-    //    std::string get_param()
-    //    {
-    //        return param;
-    //    }
-
-    //    void set_param(std::string p)
-    //    {
-    //        param = p;
-    //    }
-    //};
-
-    //template <typename TParam>
-    //class event_test_t
-    //    : public event
-    //{
-    //private:
-    //    TParam param;
-
-    //public:
-    //    event_test_t(TParam _param)
-    //        : event(-2, std::string ("template_") + std::string (typeid(TParam).name())), param(_param)
-    //    {
-    //    }
-
-    //    TParam get_param()
-    //    {
-    //        return param;
-    //    }
-
-    //    void set_param(TParam p)
-    //    {
-    //        param = p;
-    //    }
-    //};
-
-    //template <class CParam>
-    //class event_test_c
-    //    : public event
-    //{
-    //private:
-    //    CParam param;
-
-    //public:
-    //    event_test_c(CParam _param)
-    //        : event(-2, std::string("template_") + std::string(typeid(CParam).name())), param(_param)
-    //    {
-    //    }
-
-    //    CParam get_param()
-    //    {
-    //        return param;
-    //    }
-
-    //    void set_param(CParam p)
-    //    {
-    //        param = p;
-    //    }
-    //};
-
     /// end event ///
 
-    typedef void(*ptr_action_t)(event*);
-    typedef bool(*ptr_guard_t)(event*);
+    typedef void(*ptr_action_t)(event&);
+    typedef bool(*ptr_guard_t)(event&);
 
     /// link ///
 
     class link
     {
     public:
-        virtual void do_action(event*)
+        virtual void do_action(event&)
         {
         }
 
-        virtual bool guard_condition(event*)
+        virtual bool is_guard_condition(event&)
         {
             return true;
         }
@@ -160,10 +86,10 @@ namespace rm // rule machine
         std::vector <ptr_guard_t> guards;
 
     public:
-        virtual void do_action(event* ptr_e)
+        virtual void do_action(event& ref_e)
         {
             for (auto action : actions)
-                (*action)(ptr_e);
+                (*action)(ref_e);
         }
 
         void add_action(const ptr_action_t func)
@@ -176,11 +102,11 @@ namespace rm // rule machine
             actions.clear();
         }
 
-        virtual bool guard_condition(event* ptr_e)
+        virtual bool is_guard_condition(event& ref_e)
         {
             for (auto guard : guards)
             {
-                if (!(*guard)(ptr_e))
+                if (!(*guard)(ref_e))
                     return false;
             }
             return true;
@@ -212,26 +138,14 @@ namespace rm // rule machine
         {
         }
 
-        void do_action(event* ptr_e)
+        void do_action(event& ref_e)
         {
-            std::string event_name;
-            if (ptr_e)
-                event_name = ptr_e->name + ", " + std::to_string (ptr_e->id);
-            else
-                event_name = "NULL";
-
-            std::cout << "link " << name << " * event [ " << event_name << " ]: action" << std::endl;
+            std::cout << "link " << name << " * event [ " << ref_e.name << ", " << std::to_string(ref_e.id) << " ]: action" << std::endl;
         }
 
-        bool guard_condition(event* ptr_e)
+        bool is_guard_condition(event& ref_e)
         {
-            std::string event_name;
-            if (ptr_e)
-                event_name = ptr_e->name + ", " + std::to_string(ptr_e->id);
-            else
-                event_name = "NULL";
-
-            std::cout << "link " << name << " * event [ " << event_name << " ]: guard_condition: true" << std::endl;
+            std::cout << "link " << name << " * event [ " << ref_e.name << ", " << std::to_string(ref_e.id) << " ]: guard_condition: true" << std::endl;
 
             return true;
         }
@@ -253,26 +167,26 @@ namespace rm // rule machine
         }
 
     protected:
-        virtual void do_entry_action(event*)
+        virtual void do_entry_action(const event&)
         {
         }
-        virtual void do_exit_action(event*)
+        virtual void do_exit_action(const event&)
         {
         }
-        virtual void do_internal_action(event*)
+        virtual void do_internal_action(const event&)
         {
         }
 
     public:
-        void do_activate(event* ptr_e)
+        void do_activate(const event& ref_e)
         {
-            do_entry_action(ptr_e);
-            do_internal_action(ptr_e);
+            do_entry_action(ref_e);
+            do_internal_action(ref_e);
         }
-        void do_unactivate(event* ptr_e)
+        void do_unactivate(const event& ref_e)
         {
             // todo: break internal action
-            do_exit_action(ptr_e);
+            do_exit_action(ref_e);
         }
 
         virtual ~state() 
@@ -294,35 +208,17 @@ namespace rm // rule machine
         }
 
     protected:
-        void do_entry_action(event* ptr_e) override
+        void do_entry_action(const event& ref_e) override
         {
-            std::string event_name;
-            if (ptr_e)
-                event_name = ptr_e->name + ", " + std::to_string(ptr_e->id);
-            else
-                event_name = "NULL";
-
-            std::cout << "state " << name << " * event [ " << event_name << " ]: entry action" << std::endl;
+            std::cout << "state " << name << " * event [ " << ref_e.name << ", " << std::to_string(ref_e.id) << " ]: entry action" << std::endl;
         }
-        void do_exit_action(event* ptr_e) override
+        void do_exit_action(const event& ref_e) override
         {
-            std::string event_name;
-            if (ptr_e)
-                event_name = ptr_e->name + ", " + std::to_string(ptr_e->id);
-            else
-                event_name = "NULL";
-
-            std::cout << "state " << name << " * event [ " << event_name << " ]: exit action" << std::endl;
+            std::cout << "state " << name << " * event [ " << ref_e.name << ", " << std::to_string(ref_e.id) << " ]: exit action" << std::endl;
         }
-        void do_internal_action(event* ptr_e) override
+        void do_internal_action(const event& ref_e) override
         {
-            std::string event_name;
-            if (ptr_e)
-                event_name = ptr_e->name + ", " + std::to_string(ptr_e->id);
-            else
-                event_name = "NULL";
-
-            std::cout << "state " << name << " * event [ " << event_name << " ]: internal action" << std::endl;
+            std::cout << "state " << name << " * event [ " << ref_e.name << ", " << std::to_string(ref_e.id) << " ]: internal action" << std::endl;
         }
     };
 
@@ -347,15 +243,15 @@ namespace rm // rule machine
         }
 
     protected:
-        virtual void do_entry_action(event* ptr_e)
+        virtual void do_entry_action(event& ref_e)
         {
             for (auto action : entry_actions)
-                (*action)(ptr_e);
+                (*action)(ref_e);
         }
-        virtual void do_exit_action(event* ptr_e)
+        virtual void do_exit_action(event& ref_e)
         {
             for (auto action : exit_actions)
-                (*action)(ptr_e);
+                (*action)(ref_e);
         }
 
     public:
@@ -384,7 +280,7 @@ namespace rm // rule machine
     class i_event_invoker
     {
     public:
-        virtual void invoke(event* e) = 0;
+        virtual void invoke(event& ref_e) = 0;
     };
 
 
@@ -424,14 +320,14 @@ namespace rm // rule machine
         status curr_status = status::disabled;
 
     protected:
-        void invoke(event* e)
+        void invoke(event& ref_e)
         {
             if (invoker)
-                invoker->invoke(e);
+                invoker->invoke(ref_e);
         }
 
     public:
-        std::tuple <bool, std::string> recv_triggering_event(event* e)
+        std::tuple <bool, std::string> recv_triggering_event(event& ref_e)
         {
             // return: success - true, error - false
 
@@ -439,9 +335,6 @@ namespace rm // rule machine
 
             if (curr_status != status::enabled)
                 return { true, "Event reject. sm status: not enabled" };
-
-            if (!e)
-                return { false, "Event is null" };
 
             // test curr state
             if (!current_state_ptr)
@@ -454,7 +347,7 @@ namespace rm // rule machine
 
             // find links from curr state to new state by event in tab
             auto& mmap_ref = it1->second;
-            auto it2 = mmap_ref.equal_range(e->id);
+            auto it2 = mmap_ref.equal_range(ref_e.id);
             link_to_state* ptr_ls = nullptr;
             for (auto& itr = it2.first; itr != it2.second; ++itr)
             {
@@ -466,9 +359,9 @@ namespace rm // rule machine
                     break;
                 }
 
-                // link guard condition 
+                // check link guard condition 
                 if (pl)
-                    if (pl->guard_condition(e) == true)
+                    if (pl->is_guard_condition(ref_e))
                     {
                         ptr_ls = &itr->second;
                         break;
@@ -490,34 +383,44 @@ namespace rm // rule machine
             /// Ok! change state now! ///
 
             // do unactivate prev (current) state
-            current_state_ptr->do_unactivate(e);
+            current_state_ptr->do_unactivate(ref_e);
 
             // do link actions
             if (ptr_ls->ptr_link)
-                ptr_ls->ptr_link->do_action(e);
+                ptr_ls->ptr_link->do_action(ref_e);
 
             // update current state index, change current state from prev to next
             current_state_ptr = ptr_ls->ptr_state;
 
             // do activate next (current) state
-            current_state_ptr->do_activate(e);
+            current_state_ptr->do_activate(ref_e);
 
             return { true, "Ok" };
         }
 
     public:
-        void add_item(id_t e_id, link* l, state* s_from, state* s_to, bool is_begin_state_from = false)
+        bool add_essl(id_t e_id, state* s_from, state* s_to, link* l = nullptr)
         {
+            if (!s_from || !s_to)
+                return false;
+
             link_to_state ls;
             ls.ptr_link = l;
             ls.ptr_state = s_to;
             state_transitions_tab[s_from].insert(std::pair<id_t /*event id*/, link_to_state>(e_id, ls)); // set w/o test
 
-            if (is_begin_state_from)
-            {
-                current_state_ptr = s_from;
-                begin_state_ptr = current_state_ptr;
-            }
+            return true;
+        }
+
+        bool set_begin_state(state* s)
+        {
+            if (!s)
+                return false;
+
+            current_state_ptr = s;
+            begin_state_ptr = current_state_ptr;
+
+            return true;
         }
 
         void check_obj()
@@ -561,7 +464,7 @@ namespace rm // rule machine
                     break;
                 case status::disabled:
                     current_state_ptr = begin_state_ptr;
-                    current_state_ptr->do_activate(nullptr);
+                    current_state_ptr->do_activate();
                     curr_status = status::enabled;
                     break;
                 }
@@ -640,12 +543,12 @@ namespace rm // rule machine
         /// - ///
 
     public:
-        void invoke(event* e) override
+        void invoke(event& ref_e) override
         {
             for (state_machine* sm : sms)
             {
                 if (sm)
-                    sm->recv_triggering_event(e);
+                    sm->recv_triggering_event(ref_e);
             }
         }
 

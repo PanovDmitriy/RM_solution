@@ -148,6 +148,7 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="Info.txt" />
+    <Text Include="todo.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

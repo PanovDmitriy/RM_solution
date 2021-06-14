@@ -17,37 +17,25 @@
 using namespace rm;
 
 
-void action1(event* e)
+void action1(event& ref_e)
 {
-    if (e)
-        std::cout << "action1: event: " << e->id << ", " << e->name << std::endl;
-    else
-        std::cout << "action1: event: NULL " << std::endl;
+    std::cout << "action1: event: " << ref_e.id << ", " << ref_e.name << std::endl;
 }
 
-void action2(event* e)
+void action2(event& ref_e)
 {
-    if (e)
-        std::cout << "action2: event: " << e->id << ", " << e->name << std::endl;
-    else
-        std::cout << "action2: event: NULL " << std::endl;
+    std::cout << "action2: event: " << ref_e.id << ", " << ref_e.name << std::endl;
 }
 
-bool guard_always_false(event* e)
+bool guard_always_false(event& ref_e)
 {
-    if (e)
-        std::cout << "guard_always_false: event: " << e->id << ", " << e->name << std::endl;
-    else
-        std::cout << "guard_always_false: event: NULL " << std::endl;
+    std::cout << "guard_always_false: event: " << ref_e.id << ", " << ref_e.name << std::endl;
     return false;
 }
 
-bool guard_always_true(event* e)
+bool guard_always_true(event& ref_e)
 {
-    if (e)
-        std::cout << "guard_always_true: event: " << e->id << ", " << e->name << std::endl;
-    else
-        std::cout << "guard_always_true: event: NULL " << std::endl;
+    std::cout << "guard_always_true: event: " << ref_e.id << ", " << ref_e.name << std::endl;
     return true;
 }
 
@@ -116,7 +104,7 @@ int main()
     link_test link1 ("link1");
     link1.add_action(action1);
     link1.add_action(action2);
-    link1.do_action(&e);
+    link1.do_action(e);
 
     rm::event e11(101, "e1->2");
     rm::event e12(102, "e2->3");
@@ -142,14 +130,15 @@ int main()
     state_machine sm (&rm);
     rm.add_sm(&sm);
 
-    sm.add_item(101, &l1, &s1, &s2, true);
-    sm.add_item(102, &l2, &s2, &s3);
-    sm.add_item(103, &l3_1, &s3, &s1);
-    sm.add_item(103, &l3_2, &s3, &s1);
+    sm.add_essl(101, &s1, &s2, &l1);
+    sm.set_begin_state(&s1);
+    sm.add_essl(102, &s2, &s3, &l2);
+    sm.add_essl(103, &s3, &s1, &l3_1);
+    sm.add_essl(103, &s3, &s1, &l3_2);
 
-    sm.add_item(201, nullptr, &s2, &s1);
-    sm.add_item(202, nullptr, &s3, &s2);
-    sm.add_item(203, nullptr, &s1, &s3);
+    sm.add_essl(201, &s2, &s1);
+    sm.add_essl(202, &s3, &s2);
+    sm.add_essl(203, &s1, &s3);
 
     sm.set_status(status::enabled);
     std::cout << std::endl;
@@ -168,7 +157,7 @@ int main()
         case 1:
         {
             std::cout << "strike event: e101" << std::endl << "<" << std::endl;
-            auto [rez_b, rem] = sm.recv_triggering_event(&e11);
+            auto [rez_b, rem] = sm.recv_triggering_event(e11);
             res = rez_b ? "Success" : "Error" + rem;
         }
             break;
@@ -176,7 +165,7 @@ int main()
         case 2:
         {
             std::cout << "strike event: e102" << std::endl << "<" << std::endl;
-            auto [rez_b, rem] = sm.recv_triggering_event(&e12);
+            auto [rez_b, rem] = sm.recv_triggering_event(e12);
             res = rez_b ? "Success" : "Error" + rem;
         }
             break;
@@ -184,7 +173,7 @@ int main()
         case 3:
         {
             std::cout << "strike event: e103" << std::endl << "<" << std::endl;
-            auto [rez_b, rem] = sm.recv_triggering_event(&e13);
+            auto [rez_b, rem] = sm.recv_triggering_event(e13);
             res = rez_b ? "Success" : "Error" + rem;
         }
             break;
@@ -192,7 +181,7 @@ int main()
         case 4:
         {
             std::cout << "strike event: e201" << std::endl << "<" << std::endl;
-            auto [rez_b, rem] = sm.recv_triggering_event(&e21);
+            auto [rez_b, rem] = sm.recv_triggering_event(e21);
             res = rez_b ? "Success" : "Error" + rem;
         }
             break;
@@ -200,7 +189,7 @@ int main()
         case 5:
         {
             std::cout << "strike event: e202" << std::endl << "<" << std::endl;
-            auto [rez_b, rem] = sm.recv_triggering_event(&e22);
+            auto [rez_b, rem] = sm.recv_triggering_event(e22);
             res = rez_b ? "Success" : "Error" + rem;
         }
             break;
@@ -208,7 +197,7 @@ int main()
         case 6:
         {
             std::cout << "strike event: e203" << std::endl << "<" << std::endl;
-            auto [rez_b, rem] = sm.recv_triggering_event(&e23);
+            auto [rez_b, rem] = sm.recv_triggering_event(e23);
             res = rez_b ? "Success" : "Error" + rem;
         }
             break;

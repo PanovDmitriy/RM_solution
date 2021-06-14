@@ -302,12 +302,9 @@ public:
     {
     }
 
-    virtual void do_entry_action(event* ptr_e) override
+    virtual void do_entry_action(const event& ref_e) override
     {
-        if (ptr_e)
-            std::cout << "st_turn : do_entry_action (" << ptr_e->name << ")" << std::endl;
-        else
-            std::cout << "st_turn : do_entry_action (NULL)" << std::endl;
+        std::cout << "st_turn : do_entry_action (" << ref_e.name << ")" << std::endl;
 
         //вход /
         //    взять карту(1 для next_turn, 2 для next_sub_turn),
@@ -355,12 +352,9 @@ public:
     {
     }
 
-    virtual void do_entry_action(event* ptr_e) override
+    virtual void do_entry_action(const event& ref_e) override
     {
-        if (ptr_e)
-            std::cout << "st_pre_game : do_entry_action (" << ptr_e->name << ")" << std::endl;
-        else
-            std::cout << "st_pre_game : do_entry_action (NULL)" << std::endl;
+        std::cout << "st_pre_game : do_entry_action (" << ref_e.name << ")" << std::endl;
 
         //вход /
         //    раздать карты
@@ -380,12 +374,9 @@ public:
     {
     }
 
-    virtual void do_entry_action(event* ptr_e) override
+    virtual void do_entry_action(const event& ref_e) override
     {
-        if (ptr_e)
-            std::cout << "st_game : do_entry_action (" << ptr_e->name << ")" << std::endl;
-        else
-            std::cout << "st_game : do_entry_action (NULL)" << std::endl;
+        std::cout << "st_game : do_entry_action (" << ref_e.name << ")" << std::endl;
 
         //вход /
         //    сравнить
@@ -409,12 +400,9 @@ public:
     {
     }
 
-    virtual void do_action(event* ptr_e) override
+    virtual void do_action(event& ref_e) override
     {
-        if (ptr_e)
-            std::cout << "ln_end : do_action (" << ptr_e->name << ")" << std::endl;
-        else
-            std::cout << "ln_end : do_action (NULL)" << std::endl;
+        std::cout << "ln_end : do_action (" << ref_e.name << ")" << std::endl;
 
         // get winner
         std::cout << "------------------------------------------------------\n";
@@ -435,12 +423,9 @@ public:
     {
     }
 
-    virtual bool guard_condition(event* ptr_e) override
+    virtual bool is_guard_condition(event& ref_e) override
     {
-        if (ptr_e)
-            std::cout << "ln_first_turn : guard_condition (" << ptr_e->name << ")" << std::endl;
-        else
-            std::cout << "ln_first_turn : guard_condition (NULL)" << std::endl;
+        std::cout << "ln_first_turn : guard_condition (" << ref_e.name << ")" << std::endl;
 
         // all turned ?
 
@@ -460,12 +445,9 @@ public:
     {
     }
 
-    virtual bool guard_condition(event* ptr_e) override
+    virtual bool is_guard_condition(event& ref_e) override
     {
-        if (ptr_e)
-            std::cout << "ln_com_turn : guard_condition (" << ptr_e->name << ")" << std::endl;
-        else
-            std::cout << "ln_com_turn : guard_condition (NULL)" << std::endl;
+        std::cout << "ln_com_turn : guard_condition (" << ref_e.name << ")" << std::endl;
 
         // all turned ?
 
