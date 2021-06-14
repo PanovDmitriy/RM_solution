@@ -12,6 +12,8 @@
 
 #include "test_Game001.h"
 
+#include "mems.h"
+
 using namespace rm;
 
 

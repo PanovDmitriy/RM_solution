@@ -23,5 +23,8 @@
     <ClInclude Include="test_Game001.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
+    <ClInclude Include="mems.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

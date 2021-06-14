@@ -146,6 +146,7 @@
     <ClCompile Include="RM_test.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="mems.h" />
     <ClInclude Include="test_Game001.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
