@@ -57,9 +57,9 @@ namespace rm // rule machine
     typedef void(*ptr_action_t)(event&);
     typedef bool(*ptr_guard_t)(event&);
 
-    /// link ///
+    /// transition ///
 
-    class link
+    class transition
     {
     public:
         virtual void do_action(event&)
@@ -71,15 +71,15 @@ namespace rm // rule machine
             return true;
         }
 
-        virtual ~link() {}
+        virtual ~transition() {}
     };
 
     /// end link ///
 
     /// link_vecs ///
 
-    class link_vecs
-        : public link
+    class transition_vecs
+        : public transition
     {
     protected:
         std::vector <ptr_action_t> actions;
@@ -122,18 +122,18 @@ namespace rm // rule machine
         }
     };
 
-    /// end link_vecs ///
+    /// end transition_vecs ///
 
-    /// link_test ///
+    /// transition_test ///
 
-    class link_test
-        : public link_vecs
+    class transition_test
+        : public transition_vecs
     {
     public:
         const std::string name;
 
     public:
-        link_test(std::string _name)
+        transition_test(std::string _name)
             : name(_name)
         {
         }
@@ -151,18 +151,62 @@ namespace rm // rule machine
         }
     };
 
-    /// end link_test ///
+    /// end transition_test ///
 
     /// state ///
 
-    class state
+    class pseudostate
     {
     public:
-        const std::string name;
+        virtual void do_activate(const event&)
+        {
+        }
+        virtual void do_unactivate(const event&)
+        {
+        }
+
+        virtual ~pseudostate()
+        {
+        }
+    };
+
+    class initial_state :
+        public pseudostate
+    {
+    public:
+        const bool is_default = false;
 
     public:
-        state(std::string _name)
-            : name(_name)
+        initial_state(bool is_default_ = false) :
+            is_default(is_default_)
+        {
+        }
+
+        void do_activate(const event& ref_e) override
+        {
+        }
+        void do_unactivate(const event& ref_e) override
+        {
+        }
+    };
+
+    class final_state :
+        public pseudostate
+    {
+    public:
+        void do_activate(const event& ref_e) override
+        {
+        }
+        void do_unactivate(const event& ref_e) override
+        {
+        }
+    };
+
+    class state :
+        public pseudostate
+    {
+    public:
+        state()
         {
         }
 
@@ -178,12 +222,12 @@ namespace rm // rule machine
         }
 
     public:
-        void do_activate(const event& ref_e)
+        void do_activate(const event& ref_e) override
         {
             do_entry_action(ref_e);
             do_internal_action(ref_e);
         }
-        void do_unactivate(const event& ref_e)
+        void do_unactivate(const event& ref_e) override
         {
             // todo: break internal action
             do_exit_action(ref_e);
@@ -196,34 +240,6 @@ namespace rm // rule machine
 
     /// end state ///
 
-    /// state_test ///
-
-    class state_test
-        : public state
-    {
-    public:
-        state_test(std::string _name)
-            : state(_name)
-        {
-        }
-
-    protected:
-        void do_entry_action(const event& ref_e) override
-        {
-            std::cout << "state " << name << " * event [ " << ref_e.name << ", " << std::to_string(ref_e.id) << " ]: entry action" << std::endl;
-        }
-        void do_exit_action(const event& ref_e) override
-        {
-            std::cout << "state " << name << " * event [ " << ref_e.name << ", " << std::to_string(ref_e.id) << " ]: exit action" << std::endl;
-        }
-        void do_internal_action(const event& ref_e) override
-        {
-            std::cout << "state " << name << " * event [ " << ref_e.name << ", " << std::to_string(ref_e.id) << " ]: internal action" << std::endl;
-        }
-    };
-
-    /// end state_test ///
-
     /// state_vecs ///
 
     class state_vecs
@@ -234,11 +250,7 @@ namespace rm // rule machine
         std::vector <ptr_action_t> exit_actions;
 
     public:
-        const std::string name;
-
-    public:
-        state_vecs(std::string _name)
-            :state(_name)
+        state_vecs()
         {
         }
 
@@ -276,6 +288,36 @@ namespace rm // rule machine
 
     /// state_vecs ///
 
+    /// state_test ///
+
+    class state_test
+        : public state_vecs
+    {
+    public:
+        const std::string name;
+
+    public:
+        state_test(std::string _name)
+        {
+        }
+
+    protected:
+        void do_entry_action(const event& ref_e) override
+        {
+            std::cout << "state " << name << " * event [ " << ref_e.name << ", " << std::to_string(ref_e.id) << " ]: entry action" << std::endl;
+        }
+        void do_exit_action(const event& ref_e) override
+        {
+            std::cout << "state " << name << " * event [ " << ref_e.name << ", " << std::to_string(ref_e.id) << " ]: exit action" << std::endl;
+        }
+        void do_internal_action(const event& ref_e) override
+        {
+            std::cout << "state " << name << " * event [ " << ref_e.name << ", " << std::to_string(ref_e.id) << " ]: internal action" << std::endl;
+        }
+    };
+
+    /// end state_test ///
+
 
     class i_event_invoker
     {
@@ -306,7 +348,7 @@ namespace rm // rule machine
     private:
         struct link_to_state
         {
-            link* ptr_link = nullptr;
+            transition* ptr_link = nullptr;
             state* ptr_state = nullptr;
         };
 
@@ -351,7 +393,7 @@ namespace rm // rule machine
             link_to_state* ptr_ls = nullptr;
             for (auto& itr = it2.first; itr != it2.second; ++itr)
             {
-                link* pl = itr->second.ptr_link;
+                transition* pl = itr->second.ptr_link;
 
                 if (!pl) // if link is null, then success. link can be NULL. Guard condition will not test
                 {
@@ -399,7 +441,7 @@ namespace rm // rule machine
         }
 
     public:
-        bool add_essl(id_t e_id, state* s_from, state* s_to, link* l = nullptr)
+        bool add_essl(id_t e_id, state* s_from, state* s_to, transition* l = nullptr)
         {
             if (!s_from || !s_to)
                 return false;
@@ -407,18 +449,36 @@ namespace rm // rule machine
             link_to_state ls;
             ls.ptr_link = l;
             ls.ptr_state = s_to;
-            state_transitions_tab[s_from].insert(std::pair<id_t /*event id*/, link_to_state>(e_id, ls)); // set w/o test
+            state_transitions_tab[s_from].insert(std::pair<id_t /*event id*/, link_to_state>(e_id, ls));
 
             return true;
         }
 
-        bool set_begin_state(state* s)
+        bool add_begin_sl(state* s_to, transition* l = nullptr)
         {
-            if (!s)
+            if (!s_to)
                 return false;
+
+            link_to_state ls;
+            ls.ptr_link = l;
+            ls.ptr_state = s_to;
+            state_transitions_tab[s_from].insert(std::pair<id_t /*event id*/, link_to_state>(e_id, ls));
 
             current_state_ptr = s;
             begin_state_ptr = current_state_ptr;
+
+            return true;
+        }
+
+        bool add_end_sl(state* s_from, transition* l = nullptr)
+        {
+            if (!s_from)
+                return false;
+
+            link_to_state ls;
+            ls.ptr_link = l;
+            ls.ptr_state = s_to;
+            state_transitions_tab[s_from].insert(std::pair<id_t /*event id*/, link_to_state>(e_id, ls));
 
             return true;
         }

@@ -389,7 +389,7 @@ public:
 };
 
 class ln_end :
-    public link
+    public transition
 {
 protected:
     sm_play& owner_ref;
@@ -412,7 +412,7 @@ public:
 };
 
 class ln_first_turn :
-    public link
+    public transition
 {
 protected:
     sm_play& owner_ref;
@@ -434,7 +434,7 @@ public:
 };
 
 class ln_com_turn :
-    public link
+    public transition
 {
 protected:
     sm_play& owner_ref;

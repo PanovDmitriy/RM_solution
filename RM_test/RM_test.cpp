@@ -101,11 +101,6 @@ int main()
     std::cout << "id=" << e.id << std::endl;
     std::cout << "name=" << e.name << std::endl; 
 
-    link_test link1 ("link1");
-    link1.add_action(action1);
-    link1.add_action(action2);
-    link1.do_action(e);
-
     rm::event e11(101, "e1->2");
     rm::event e12(102, "e2->3");
     rm::event e13(103, "e3->1");
@@ -117,21 +112,21 @@ int main()
     state_test s2("state2");
     state_test s3("state3");
 
-    link_test l1("link1");
-    link_test l2("link2");
-    //link_test l3("link3");
+    transition_test l1("trans1");
+    transition_test l2("trans2");
+    transition_test lb("trans_begin");
     
-    link_test l3_1("link_l3_1");
+    transition_test l3_1("trans_l3_1");
     l3_1.add_guard(guard_always_false);
-    link_test l3_2("link_l3_2");
+    transition_test l3_2("trans_l3_2");
     l3_2.add_guard(guard_always_true);
 
     rule_machine rm;
     state_machine sm (&rm);
     rm.add_sm(&sm);
 
+    sm.add_begin_sl(&s1, &lb);
     sm.add_essl(101, &s1, &s2, &l1);
-    sm.set_begin_state(&s1);
     sm.add_essl(102, &s2, &s3, &l2);
     sm.add_essl(103, &s3, &s1, &l3_1);
     sm.add_essl(103, &s3, &s1, &l3_2);
