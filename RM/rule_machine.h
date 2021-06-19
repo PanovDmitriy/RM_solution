@@ -58,11 +58,35 @@ namespace rm // rule machine
     class global_event :
         public event
     {
+    public:
+        global_event(const global_event& e)
+            : event(e.id, e.name)
+        {
+        }
+
+        global_event(id_t _id, std::string _name)
+            : event (_id, _name)
+        {
+        }
+
+        ~global_event() {};
     };
 
     class local_event :
         public event
     {
+    public:
+        local_event(const global_event& e)
+            : event(e.id, e.name)
+        {
+        }
+
+        local_event(id_t _id, std::string _name)
+            : event(_id, _name)
+        {
+        }
+
+        ~local_event() {};
     };
 
     class local_change_event :
