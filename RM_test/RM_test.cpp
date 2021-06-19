@@ -17,23 +17,23 @@
 using namespace rm;
 
 
-void action1(event& ref_e)
+void action1(global_event& ref_e)
 {
     std::cout << "action1: event: " << ref_e.id << ", " << ref_e.name << std::endl;
 }
 
-void action2(event& ref_e)
+void action2(global_event& ref_e)
 {
     std::cout << "action2: event: " << ref_e.id << ", " << ref_e.name << std::endl;
 }
 
-bool guard_always_false(event& ref_e)
+bool guard_always_false(global_event& ref_e)
 {
     std::cout << "guard_always_false: event: " << ref_e.id << ", " << ref_e.name << std::endl;
     return false;
 }
 
-bool guard_always_true(event& ref_e)
+bool guard_always_true(global_event& ref_e)
 {
     std::cout << "guard_always_true: event: " << ref_e.id << ", " << ref_e.name << std::endl;
     return true;
@@ -97,16 +97,16 @@ int main()
     ////cs1.show("cs1");
     ////cs2.show("cs2");
 
-    rm::event e(111, "e111");
+    rm::global_event e(111, "e111");
     std::cout << "id=" << e.id << std::endl;
     std::cout << "name=" << e.name << std::endl; 
 
-    rm::event e11(101, "e1->2");
-    rm::event e12(102, "e2->3");
-    rm::event e13(103, "e3->1");
-    rm::event e21(201, "e2->1");
-    rm::event e22(202, "e3->2");
-    rm::event e23(203, "e1->3");
+    rm::global_event e11(101, "e1->2");
+    rm::global_event e12(102, "e2->3");
+    rm::global_event e13(103, "e3->1");
+    rm::global_event e21(201, "e2->1");
+    rm::global_event e22(202, "e3->2");
+    rm::global_event e23(203, "e1->3");
 
     state_test s1("state1");
     state_test s2("state2");
