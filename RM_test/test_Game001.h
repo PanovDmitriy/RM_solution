@@ -298,11 +298,16 @@ protected:
 
 public:
     st_turn(sm_player& owner_) :
-        owner_ref(owner_), state("state st_turn")
+        owner_ref(owner_)
     {
     }
 
-    virtual void do_entry_action(const global_event& ref_e) override
+    std::string to_string() override
+    {
+        return "state st_turn";
+    }
+
+    virtual void do_entry_action(const event& ref_e) override
     {
         std::cout << "st_turn : do_entry_action (" << ref_e.name << ")" << std::endl;
 
@@ -348,11 +353,16 @@ protected:
 
 public:
     st_pre_game(sm_play& owner_) :
-        owner_ref(owner_), state("state st_pre_game")
+        owner_ref(owner_)
     {
     }
 
-    virtual void do_entry_action(const global_event& ref_e) override
+    std::string to_string() override
+    {
+        return "state st_pre_game";
+    }
+
+    virtual void do_entry_action(const event& ref_e) override
     {
         std::cout << "st_pre_game : do_entry_action (" << ref_e.name << ")" << std::endl;
 
@@ -370,11 +380,16 @@ protected:
 
 public:
     st_game(sm_play& owner_) :
-        owner_ref(owner_), state("state st_game")
+        owner_ref(owner_)
     {
     }
 
-    virtual void do_entry_action(const global_event& ref_e) override
+    std::string to_string() override
+    {
+        return "state st_game";
+    }
+
+    virtual void do_entry_action(const event& ref_e) override
     {
         std::cout << "st_game : do_entry_action (" << ref_e.name << ")" << std::endl;
 
@@ -400,7 +415,7 @@ public:
     {
     }
 
-    virtual void do_action(global_event& ref_e) override
+    virtual void do_action(event& ref_e) override
     {
         std::cout << "ln_end : do_action (" << ref_e.name << ")" << std::endl;
 
@@ -423,7 +438,7 @@ public:
     {
     }
 
-    virtual bool is_guard_condition(global_event& ref_e) override
+    virtual bool is_guard_condition(event& ref_e) override
     {
         std::cout << "ln_first_turn : guard_condition (" << ref_e.name << ")" << std::endl;
 
@@ -445,7 +460,7 @@ public:
     {
     }
 
-    virtual bool is_guard_condition(global_event& ref_e) override
+    virtual bool is_guard_condition(event& ref_e) override
     {
         std::cout << "ln_com_turn : guard_condition (" << ref_e.name << ")" << std::endl;
 

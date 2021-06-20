@@ -10,30 +10,30 @@
 #include <vector>
 #include <algorithm>
 
-#include "test_Game001.h"
+//#include "test_Game001.h"
 
 #include "mems.h"
 
 using namespace rm;
 
 
-void action1(global_event& ref_e)
+void action1(event& ref_e)
 {
     std::cout << "action1: event: " << ref_e.id << ", " << ref_e.name << std::endl;
 }
 
-void action2(global_event& ref_e)
+void action2(event& ref_e)
 {
     std::cout << "action2: event: " << ref_e.id << ", " << ref_e.name << std::endl;
 }
 
-bool guard_always_false(global_event& ref_e)
+bool guard_always_false(event& ref_e)
 {
     std::cout << "guard_always_false: event: " << ref_e.id << ", " << ref_e.name << std::endl;
     return false;
 }
 
-bool guard_always_true(global_event& ref_e)
+bool guard_always_true(event& ref_e)
 {
     std::cout << "guard_always_true: event: " << ref_e.id << ", " << ref_e.name << std::endl;
     return true;
@@ -97,112 +97,100 @@ int main()
     ////cs1.show("cs1");
     ////cs2.show("cs2");
 
-    rm::global_event e(111, "e111");
-    std::cout << "id=" << e.id << std::endl;
-    std::cout << "name=" << e.name << std::endl; 
+    //rm::event e(111, "e111");
+    //std::cout << "id=" << e.id << std::endl;
+    //std::cout << "name=" << e.name << std::endl; 
 
-    rm::global_event e11(101, "e1->2");
-    rm::global_event e12(102, "e2->3");
-    rm::global_event e13(103, "e3->1");
-    rm::global_event e21(201, "e2->1");
-    rm::global_event e22(202, "e3->2");
-    rm::global_event e23(203, "e1->3");
+    event e12(102, "event 1->2", true);
+    event e23(203, "event 2->3", true);
+    event e31(301, "event 3->1", true);
+    event e21(201, "event 2->1", true);
+    event e32(302, "event 3->2", true);
+    event e13(103, "event 1->3", true);
+    event einit1(001, "event init->1", true);
+    event einit2(002, "event init->2", true);
+    event einit3(003, "event init->3", true);
 
     state_test s1("state1");
     state_test s2("state2");
     state_test s3("state3");
+    initial_state si;
 
-    transition_test l1("trans1");
-    transition_test l2("trans2");
-    transition_test lb("trans_begin");
-    
-    transition_test l3_1("trans_l3_1");
-    l3_1.add_guard(guard_always_false);
-    transition_test l3_2("trans_l3_2");
-    l3_2.add_guard(guard_always_true);
+    transition_test tinit1("trans init->1");
+    transition_test tinit2("trans init->2");
+    transition_test tinit3("trans init->3");
+    transition_test t12("trans 1->2");
+    transition_test t21("trans 2->1");
+    transition_test t23("trans 2->3");
+    transition_test t32("trans 3->2");
+    transition_test t13("trans 1->3");
+    transition_test t31("trans 3->1");
 
-    rule_machine rm;
-    state_machine sm (&rm);
-    rm.add_sm(&sm);
+    t31.add_guard(guard_always_false);
+    t13.add_action(action1);
+    t32.add_guard(guard_always_true);
+    t23.add_action(action2);
 
-    sm.add_begin_sl(&s1, &lb);
-    sm.add_essl(101, &s1, &s2, &l1);
-    sm.add_essl(102, &s2, &s3, &l2);
-    sm.add_essl(103, &s3, &s1, &l3_1);
-    sm.add_essl(103, &s3, &s1, &l3_2);
+//    rule_machine rm;
+    state_machine sm (nullptr);
+//    rm.add_sm(&sm);
 
-    sm.add_essl(201, &s2, &s1);
-    sm.add_essl(202, &s3, &s2);
-    sm.add_essl(203, &s1, &s3);
+    sm.add_essl(einit1.id, &si, &s1, &tinit1);
+    sm.add_essl(einit2.id, &si, &s2, &tinit2);
+    sm.add_essl(einit3.id, &si, &s3, &tinit3);
+    sm.add_essl(e12.id, &s1, &s2, &t12);
+    sm.add_essl(e21.id, &s2, &s1, &t21);
+    sm.add_essl(e32.id, &s3, &s2, &t32);
+    sm.add_essl(e23.id, &s2, &s3, &t23);
+    sm.add_essl(e13.id, &s1, &s3, &t13);
+    sm.add_essl(e31.id, &s3, &s1, &t31);
 
-    sm.set_status(status::enabled);
+    sm.set_status_enabled (einit1);
     std::cout << std::endl;
-    sm.set_status(status::paused);
-    sm.set_status(status::disabled);
-    sm.set_status(status::enabled);
+    sm.set_status_paused();
+    sm.set_status_disabled();
+    sm.set_status_enabled(einit2);
     std::cout << std::endl;
 
     int a = 1;
     int b = 6;
     for (int i = 0; i < 50; i++)
     {
-        std::string res = "";
+        event* ee = &e12;
         switch (rand() % (b - a + 1) + a)
         {
         case 1:
-        {
-            std::cout << "strike event: e101" << std::endl << "<" << std::endl;
-            auto [rez_b, rem] = sm.recv_triggering_event(e11);
-            res = rez_b ? "Success" : "Error" + rem;
-        }
+            ee = &e12;
             break;
 
         case 2:
-        {
-            std::cout << "strike event: e102" << std::endl << "<" << std::endl;
-            auto [rez_b, rem] = sm.recv_triggering_event(e12);
-            res = rez_b ? "Success" : "Error" + rem;
-        }
+            ee = &e21;
             break;
 
         case 3:
-        {
-            std::cout << "strike event: e103" << std::endl << "<" << std::endl;
-            auto [rez_b, rem] = sm.recv_triggering_event(e13);
-            res = rez_b ? "Success" : "Error" + rem;
-        }
+            ee = &e32;
             break;
 
         case 4:
-        {
-            std::cout << "strike event: e201" << std::endl << "<" << std::endl;
-            auto [rez_b, rem] = sm.recv_triggering_event(e21);
-            res = rez_b ? "Success" : "Error" + rem;
-        }
+            ee = &e23;
             break;
 
         case 5:
-        {
-            std::cout << "strike event: e202" << std::endl << "<" << std::endl;
-            auto [rez_b, rem] = sm.recv_triggering_event(e22);
-            res = rez_b ? "Success" : "Error" + rem;
-        }
+            ee = &e31;
             break;
 
         case 6:
-        {
-            std::cout << "strike event: e203" << std::endl << "<" << std::endl;
-            auto [rez_b, rem] = sm.recv_triggering_event(e23);
-            res = rez_b ? "Success" : "Error" + rem;
-        }
+            ee = &e13;
             break;
         }
-        std::cout << "result: " << res << std::endl << ">" << std::endl << std::endl;
+        std::cout << "strike event: " << ee->name << std::endl << "<" << std::endl;
+        auto [rez_b, rem] = sm.recv_triggering_event(*ee);
+        std::cout << "result: " << (rez_b ? "Success (" : "Error (") << rem << ")" << std::endl << ">" << std::endl << std::endl;
     }
 
     sm.check_obj();
 
-    rm.clear();
+    //rm.clear();
 
     return 0;
 }
