@@ -219,10 +219,6 @@ namespace rm // rule machine
         {
         }
 
-        void do_activate()
-        {
-        }
-
         std::string to_string() override
         {
             return "init state";
@@ -373,6 +369,7 @@ namespace rm // rule machine
 
         state* current_state_ptr = nullptr;
         initial_state* initial_state_ptr = nullptr;
+        final_state* final_state_ptr = nullptr;
 
         status curr_status = status::disabled;
 
@@ -433,26 +430,27 @@ namespace rm // rule machine
             if (!(ptr_ls->ptr_target_state))
                 return { false, "Target state is null" };
 
-
-            auto it3 = state_transitions_tab.find(ptr_ls->ptr_target_state);
-            if (it3 == state_transitions_tab.end())
-                return { false, "Target state is not faund" };
-
             /// - ///
 
             /// Ok! change state now! ///
 
-            // do unactivate prev (current) state
+            // do unactivate source (current) state
             current_state_ptr->do_unactivate(ref_e);
 
             // do link actions
             if (ptr_ls->ptr_transition)
                 ptr_ls->ptr_transition->do_action(ref_e);
 
-            // update current state index, change current state from prev to next
+            // update current state index, change current state from source to target
             current_state_ptr = ptr_ls->ptr_target_state;
 
-            // do activate next (current) state
+            if (current_state_ptr == final_state_ptr)
+            {
+                set_status_disabled();
+                return { true, "Current state is Final. State machine is disable" };
+            }
+
+            // do activate target (current) state
             current_state_ptr->do_activate(ref_e);
 
             return { true, "Ok" };
@@ -480,6 +478,20 @@ namespace rm // rule machine
             if (add_essl(e_id, static_cast<state*>(s_source), s_target, t))
             {
                 initial_state_ptr = s_source;
+                return true;
+            }
+
+            return false;
+        }
+
+        bool add_essl(id_t e_id, state* s_source, final_state* s_target, transition* t = nullptr)
+        {
+            if (final_state_ptr && final_state_ptr != s_target) // не обязательное условие, чисто для симметрии с initial state
+                return false; // final state must be single! но это не точно :)
+
+            if (add_essl(e_id, s_source, static_cast<state*>(s_target), t))
+            {
+                final_state_ptr = s_target;
                 return true;
             }
 
@@ -523,9 +535,9 @@ namespace rm // rule machine
                 curr_status = status::enabled;
                 break;
             case status::disabled:
-                curr_status = status::enabled;
                 current_state_ptr = static_cast<state*>(initial_state_ptr);
-                initial_state_ptr->do_activate();
+                initial_state_ptr->do_activate(e);
+                curr_status = status::enabled;
                 recv_triggering_event(e);
                 break;
             }

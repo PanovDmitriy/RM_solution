@@ -110,15 +110,22 @@ int main()
     event einit1(001, "event init->1", true);
     event einit2(002, "event init->2", true);
     event einit3(003, "event init->3", true);
+    event e1final(100, "event 1->final", true);
+    event e2final(200, "event 2->final", true);
+    event e3final(300, "event 3->final", true);
 
     state_test s1("state1");
     state_test s2("state2");
     state_test s3("state3");
     initial_state si;
+    final_state sf;
 
     transition_test tinit1("trans init->1");
     transition_test tinit2("trans init->2");
     transition_test tinit3("trans init->3");
+    transition_test tfinal1("trans 1->final");
+    transition_test tfinal2("trans 2->final");
+    transition_test tfinal3("trans 3->final");
     transition_test t12("trans 1->2");
     transition_test t21("trans 2->1");
     transition_test t23("trans 2->3");
@@ -144,6 +151,9 @@ int main()
     sm.add_essl(e23.id, &s2, &s3, &t23);
     sm.add_essl(e13.id, &s1, &s3, &t13);
     sm.add_essl(e31.id, &s3, &s1, &t31);
+    sm.add_essl(e1final.id, &s1, &sf, &tfinal1);
+    //sm.add_essl(e2final.id, &s2, &sf, &tfinal2);
+    //sm.add_essl(e3final.id, &s3, &sf, &tfinal3);
 
     sm.set_status_enabled (einit1);
     std::cout << std::endl;
@@ -153,9 +163,15 @@ int main()
     std::cout << std::endl;
 
     int a = 1;
-    int b = 6;
+    int b = 9;
     for (int i = 0; i < 50; i++)
     {
+        if (sm.get_status() != rm::status::enabled)
+        {
+            std::cout << "State machine is not Ensbled." << std::endl << std::endl;
+            break;
+        }
+
         event* ee = &e12;
         switch (rand() % (b - a + 1) + a)
         {
@@ -182,10 +198,25 @@ int main()
         case 6:
             ee = &e13;
             break;
+
+        case 7:
+            ee = &e1final;
+            break;
+
+        case 8:
+            ee = &e2final;
+            break;
+
+        case 9:
+            ee = &e3final;
+            break;
         }
-        std::cout << "strike event: " << ee->name << std::endl << "<" << std::endl;
+        std::cout << "strike [" << i+1 << "] event: " << ee->name << std::endl << "<" << std::endl;
         auto [rez_b, rem] = sm.recv_triggering_event(*ee);
         std::cout << "result: " << (rez_b ? "Success (" : "Error (") << rem << ")" << std::endl << ">" << std::endl << std::endl;
+
+        if (!rez_b)
+            break;
     }
 
     sm.check_obj();
