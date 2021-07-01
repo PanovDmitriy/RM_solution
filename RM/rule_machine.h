@@ -25,7 +25,7 @@ namespace rm // rule machine
         const id_t id = -1;
         const std::string name;
         const std::time_t time = std::time(nullptr);
-        const bool is_local = false; // возможно следует разделить оласть использования не только на локал - глобал, а на in_state, in_state_machine, in_rule_machine ? но в чём разница in_state и in_state_machine если событие полуает только активное состояние???
+        const bool is_local = false; 
 
     private:
         event()
@@ -41,8 +41,6 @@ namespace rm // rule machine
         event(id_t id_, std::string name_, bool is_local_ = false)
             : id(id_), name(name_), is_local (is_local_)
         {
-            if (id < 0)
-                throw std::exception("event ID must be >= 0 : ", id);
         }
 
         bool operator == (const event& ref_e)
