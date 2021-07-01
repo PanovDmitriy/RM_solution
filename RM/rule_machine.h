@@ -19,13 +19,13 @@ namespace rm // rule machine
 
     /// event ///
 
-    class event // abstruct
+    class event
     {
     public:
         const id_t id = -1;
         const std::string name;
         const std::time_t time = std::time(nullptr);
-        const bool is_local = false;
+        const bool is_local = false; // возможно следует разделить оласть использования не только на локал - глобал, а на in_state, in_state_machine, in_rule_machine ? но в чём разница in_state и in_state_machine если событие полуает только активное состояние???
 
     private:
         event()
@@ -57,17 +57,6 @@ namespace rm // rule machine
         virtual ~event() {};
     };
 
-    class event_start :
-        public event
-    {
-    public:
-        event_start() :
-            event(0, "start event", true)
-        {
-            const_cast<id_t&>(id) = -1;
-        }
-    };
-   
     /// end event ///
 
     typedef void(*ptr_action_t)(event&);
@@ -457,7 +446,7 @@ namespace rm // rule machine
         }
 
     public:
-        bool add_essl(id_t e_id, state* s_source, state* s_target, transition* t = nullptr)
+        bool add_event_state_state_transition(id_t e_id, state* s_source, state* s_target, transition* t = nullptr)
         {
             if (!s_source || !s_target)
                 return false;
@@ -470,12 +459,12 @@ namespace rm // rule machine
             return true;
         }
 
-        bool add_essl(id_t e_id, initial_state* s_source, state* s_target, transition* t = nullptr)
+        bool add_event_state_state_transition(id_t e_id, initial_state* s_source, state* s_target, transition* t = nullptr)
         {
             if (initial_state_ptr && initial_state_ptr != s_source)
                 return false; // initial state must be single!
 
-            if (add_essl(e_id, static_cast<state*>(s_source), s_target, t))
+            if (add_event_state_state_transition(e_id, static_cast<state*>(s_source), s_target, t))
             {
                 initial_state_ptr = s_source;
                 return true;
@@ -484,12 +473,12 @@ namespace rm // rule machine
             return false;
         }
 
-        bool add_essl(id_t e_id, state* s_source, final_state* s_target, transition* t = nullptr)
+        bool add_event_state_state_transition(id_t e_id, state* s_source, final_state* s_target, transition* t = nullptr)
         {
             if (final_state_ptr && final_state_ptr != s_target) // не обязательное условие, чисто для симметрии с initial state
                 return false; // final state must be single! но это не точно :)
 
-            if (add_essl(e_id, s_source, static_cast<state*>(s_target), t))
+            if (add_event_state_state_transition(e_id, s_source, static_cast<state*>(s_target), t))
             {
                 final_state_ptr = s_target;
                 return true;
