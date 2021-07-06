@@ -94,14 +94,14 @@ std::unique_ptr
 std::shared_ptr
 std::auto_ptr
 std::weak_ptr
-https://habr.com/ru/post/104219/
+https://ravesli.com/urok-193-std-unique_ptr/
 
 https://habr.com/ru/post/188010/
 https://habr.com/ru/post/196560/
 https://habr.com/ru/post/195482/
 https://habr.com/ru/post/195996/
 https://habr.com/ru/post/196226/
-
+https://habr.com/ru/post/104219/
 https://www.youtube.com/watch?v=SEvR78OhGtw
 
 
