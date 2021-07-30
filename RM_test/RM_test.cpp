@@ -41,6 +41,33 @@ bool guard_always_true(event& ref_e)
 
 
 
+bool isPalindrome(int x)
+{
+    if (x < 0)
+        return false;
+
+    std::string s = std::to_string(x);
+    int len = s.length();
+    if (len == 1)
+        return true;
+
+    int i = 0;
+    int ib = len - 1;
+    while (s[i] == s[ib] && i < ib)
+    {
+        i++;
+        ib--;
+    }
+
+    if (i >= ib)
+        return true;
+
+    if (!(len & 1))
+        if (ib - i < 3)
+            return true;
+
+    return false;
+}
 
 
 
@@ -100,6 +127,19 @@ int main()
     //rm::event e(111, "e111");
     //std::cout << "id=" << e.id << std::endl;
     //std::cout << "name=" << e.name << std::endl; 
+
+    //std::string s = "abcabcbb";
+    //std::string s = "au";
+    //std::string s="bbbbb";
+    std::string s= "acabdkacaa";
+    //std::string s="";
+
+
+
+    bool bbb = isPalindrome(11);
+
+
+    return 0;
 
     event e12(102, "event 1->2", true);
     event e23(203, "event 2->3", true);

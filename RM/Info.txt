@@ -88,7 +88,7 @@ event_end_of_time : // нужно ли такое событие как предопределённое, если оно мож
 
 --------------------------
 
-CRTP
+CRTP (https://www.youtube.com/watch?v=SsIJTyM3rg8  https://www.youtube.com/watch?v=bIKFwEzk4DU)
 SFINAE
 std::unique_ptr
 std::shared_ptr
