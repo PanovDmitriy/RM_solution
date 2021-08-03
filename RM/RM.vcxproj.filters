@@ -25,5 +25,6 @@
   <ItemGroup>
     <Text Include="Info.txt" />
     <Text Include="todo.txt" />
+    <Text Include="Description.txt" />
   </ItemGroup>
 </Project>

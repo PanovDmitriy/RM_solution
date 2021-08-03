@@ -14,6 +14,9 @@
 namespace rm // rule machine
 {
     typedef int id_t;
+    typedef std::tuple <bool, std::string> result_t;
+    typedef void(*ptr_action_t)(const event&);
+    typedef bool(*ptr_guard_t)(const event&);
 
     enum class status { enabled, disabled, paused };
 
@@ -22,17 +25,14 @@ namespace rm // rule machine
     class event
     {
     public:
-        const id_t id = -1;
-        const std::string name;
-        const std::time_t time = std::time(nullptr);
-        const bool is_local = false; 
-
-    private:
-        event()
-        {
-        }
+        const id_t id = -1; // идентификатор
+        const std::string name; // имя, не важное
+        const std::time_t time = std::time(nullptr); // время создания события
+        const bool is_local = false;
 
     public:
+        event() = delete;
+
         event(const event& e)
             : id(e.id), name(e.name), is_local (e.is_local)
         {
@@ -57,19 +57,16 @@ namespace rm // rule machine
 
     /// end event ///
 
-    typedef void(*ptr_action_t)(event&);
-    typedef bool(*ptr_guard_t)(event&);
-
     /// transition ///
 
     class transition
     {
     public:
-        virtual void do_action(event&)
+        virtual void do_action(const event&)
         {
         }
 
-        virtual bool is_guard_condition(event&)
+        virtual bool is_guard_condition(const event&)
         {
             return true;
         }
@@ -89,7 +86,7 @@ namespace rm // rule machine
         std::vector <ptr_guard_t> guards;
 
     public:
-        virtual void do_action(event& ref_e)
+        void do_action(const event& ref_e) override
         {
             for (auto action : actions)
                 (*action)(ref_e);
@@ -105,7 +102,7 @@ namespace rm // rule machine
             actions.clear();
         }
 
-        virtual bool is_guard_condition(event& ref_e)
+        bool is_guard_condition(const event& ref_e) override
         {
             for (auto guard : guards)
             {
@@ -136,17 +133,19 @@ namespace rm // rule machine
         const std::string name;
 
     public:
+        transition_test() = delete;
+
         transition_test(std::string _name)
             : name(_name)
         {
         }
 
-        void do_action(event& ref_e)
+        void do_action(const event& ref_e) override
         {
             std::cout << "link " << name << " * event [ " << ref_e.name << ", " << std::to_string(ref_e.id) << " ]: action" << std::endl;
         }
 
-        bool is_guard_condition(event& ref_e)
+        bool is_guard_condition(const event& ref_e) override
         {
             std::cout << "link " << name << " * event [ " << ref_e.name << ", " << std::to_string(ref_e.id) << " ]: guard_condition: true" << std::endl;
 
@@ -186,7 +185,7 @@ namespace rm // rule machine
     public:
         virtual std::string to_string()
         {
-            return std::to_string (reinterpret_cast<unsigned long long>(this));
+            return std::to_string (reinterpret_cast<unsigned long long>(this)); // address is ID
         }
 
     public:
@@ -246,12 +245,12 @@ namespace rm // rule machine
     //    }
 
     protected:
-        virtual void do_entry_action(event& ref_e)
+        void do_entry_action(const event& ref_e) override
         {
             for (auto action : entry_actions)
                 (*action)(ref_e);
         }
-        virtual void do_exit_action(event& ref_e)
+        void do_exit_action(const event& ref_e) override
         {
             for (auto action : exit_actions)
                 (*action)(ref_e);
@@ -288,6 +287,8 @@ namespace rm // rule machine
         const std::string name;
 
     public:
+        state_test() = delete;
+
         state_test(std::string _name) : 
             name(_name)
         {
@@ -320,7 +321,7 @@ namespace rm // rule machine
     class i_event_invoker
     {
     public:
-        virtual void invoke(event& ref_e) = 0;
+        virtual void invoke(const event& ref_e) = 0;
     };
 
 
@@ -331,13 +332,8 @@ namespace rm // rule machine
     public:
         //const id_t id;
 
-    private:
-        state_machine()
-            : invoker(nullptr)
-        {
-        }
+        state_machine() = delete;
 
-    public:
         state_machine(i_event_invoker* invoker_ )
             : invoker(invoker_)
         {
@@ -352,7 +348,7 @@ namespace rm // rule machine
 
         std::map<state* /*source state*/, std::multimap<id_t /*event id*/, transit_to_state>> state_transitions_tab;
 
-        i_event_invoker* invoker;
+        i_event_invoker* invoker = nullptr;
 
         state* current_state_ptr = nullptr;
         initial_state* initial_state_ptr = nullptr;
@@ -361,7 +357,7 @@ namespace rm // rule machine
         status curr_status = status::disabled;
 
     protected:
-        void invoke(event& ref_e)
+        void invoke(const event& ref_e)
         {
             if (ref_e.is_local)
                 recv_triggering_event(ref_e);
@@ -371,7 +367,7 @@ namespace rm // rule machine
         }
 
     public:
-        std::tuple <bool, std::string> recv_triggering_event(event& ref_e)
+        result_t recv_triggering_event(const event& ref_e)
         {
             // return: success - true, error - false
 
@@ -444,45 +440,41 @@ namespace rm // rule machine
         }
 
     public:
-        bool add_event_state_state_transition(id_t e_id, state* s_source, state* s_target, transition* t = nullptr)
+        result_t add_event_state_state_transition(id_t e_id, state* s_source, state* s_target, transition* t = nullptr)
         {
             if (!s_source || !s_target)
-                return false;
+                return { false, "Parameter state ptr is null" };
 
             transit_to_state ls;
             ls.ptr_transition = t;
             ls.ptr_target_state = s_target;
             state_transitions_tab[s_source].insert(std::pair<id_t /*event id*/, transit_to_state>(e_id, ls));
 
-            return true;
+            return { true, "Ok" };
         }
 
-        bool add_event_state_state_transition(id_t e_id, initial_state* s_source, state* s_target, transition* t = nullptr)
+        result_t add_event_state_state_transition(id_t e_id, initial_state* s_source, state* s_target, transition* t = nullptr)
         {
             if (initial_state_ptr && initial_state_ptr != s_source)
-                return false; // initial state must be single!
+                return { false, "Initial state is already set" }; // initial state must be single!
 
-            if (add_event_state_state_transition(e_id, static_cast<state*>(s_source), s_target, t))
-            {
+            result_t rez = add_event_state_state_transition(e_id, static_cast<state*>(s_source), s_target, t);
+            if (std::get<0>(rez))
                 initial_state_ptr = s_source;
-                return true;
-            }
 
-            return false;
+            return rez;
         }
 
-        bool add_event_state_state_transition(id_t e_id, state* s_source, final_state* s_target, transition* t = nullptr)
+        result_t add_event_state_state_transition(id_t e_id, state* s_source, final_state* s_target, transition* t = nullptr)
         {
             if (final_state_ptr && final_state_ptr != s_target) // не обязательное условие, чисто для симметрии с initial state
-                return false; // final state must be single! но это не точно :)
+                return { false, "Final state is already set" }; // final state must be single! но это не точно :)
 
-            if (add_event_state_state_transition(e_id, s_source, static_cast<state*>(s_target), t))
-            {
+            result_t rez = add_event_state_state_transition(e_id, s_source, static_cast<state*>(s_target), t);
+            if (std::get<0>(rez))
                 final_state_ptr = s_target;
-                return true;
-            }
 
-            return false;
+            return rez;
         }
 
         void check_obj()

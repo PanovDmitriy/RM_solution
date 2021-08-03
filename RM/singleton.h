@@ -26,15 +26,14 @@ private:
     inline static Singleton* p_instance = nullptr;
     inline static SingletonDestroyer destroyer;
 
-protected:
-    Singleton() {}
-    Singleton(const Singleton&) {}
-    Singleton& operator=(Singleton&) {}
+public:
+    Singleton() = delete;
+    Singleton(const Singleton&) = delete;
+    Singleton& operator=(const Singleton&) = delete;
     ~Singleton() {}
 
     friend class SingletonDestroyer;
 
-public:
     static Singleton& getInstance()
     {
         if (!p_instance) 

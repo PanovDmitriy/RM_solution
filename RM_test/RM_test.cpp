@@ -17,23 +17,23 @@
 using namespace rm;
 
 
-void action1(event& ref_e)
+void action1(const event& ref_e)
 {
     std::cout << "action1: event: " << ref_e.id << ", " << ref_e.name << std::endl;
 }
 
-void action2(event& ref_e)
+void action2(const event& ref_e)
 {
     std::cout << "action2: event: " << ref_e.id << ", " << ref_e.name << std::endl;
 }
 
-bool guard_always_false(event& ref_e)
+bool guard_always_false(const event& ref_e)
 {
     std::cout << "guard_always_false: event: " << ref_e.id << ", " << ref_e.name << std::endl;
     return false;
 }
 
-bool guard_always_true(event& ref_e)
+bool guard_always_true(const event& ref_e)
 {
     std::cout << "guard_always_true: event: " << ref_e.id << ", " << ref_e.name << std::endl;
     return true;
@@ -127,19 +127,6 @@ int main()
     //rm::event e(111, "e111");
     //std::cout << "id=" << e.id << std::endl;
     //std::cout << "name=" << e.name << std::endl; 
-
-    //std::string s = "abcabcbb";
-    //std::string s = "au";
-    //std::string s="bbbbb";
-    std::string s= "acabdkacaa";
-    //std::string s="";
-
-
-
-    bool bbb = isPalindrome(11);
-
-
-    return 0;
 
     event e12(102, "event 1->2", true);
     event e23(203, "event 2->3", true);

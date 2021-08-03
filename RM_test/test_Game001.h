@@ -1,5 +1,6 @@
 #pragma once
 
+#include <list>
 //#include "rule_machine.h"
 #include "..//RM/rule_machine.h"
 
@@ -307,7 +308,7 @@ public:
         return "state st_turn";
     }
 
-    virtual void do_entry_action(const event& ref_e) override
+    void do_entry_action(const event& ref_e) override
     {
         std::cout << "st_turn : do_entry_action (" << ref_e.name << ")" << std::endl;
 
@@ -415,7 +416,7 @@ public:
     {
     }
 
-    virtual void do_action(event& ref_e) override
+    void do_action(const event& ref_e) override
     {
         std::cout << "ln_end : do_action (" << ref_e.name << ")" << std::endl;
 
@@ -438,7 +439,7 @@ public:
     {
     }
 
-    virtual bool is_guard_condition(event& ref_e) override
+    bool is_guard_condition(const event& ref_e) override
     {
         std::cout << "ln_first_turn : guard_condition (" << ref_e.name << ")" << std::endl;
 
@@ -460,7 +461,7 @@ public:
     {
     }
 
-    virtual bool is_guard_condition(event& ref_e) override
+    bool is_guard_condition(const event& ref_e) override
     {
         std::cout << "ln_com_turn : guard_condition (" << ref_e.name << ")" << std::endl;
 

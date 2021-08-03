@@ -147,6 +147,7 @@
     <ClInclude Include="singleton.h" />
   </ItemGroup>
   <ItemGroup>
+    <Text Include="Description.txt" />
     <Text Include="Info.txt" />
     <Text Include="todo.txt" />
   </ItemGroup>

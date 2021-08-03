@@ -88,7 +88,7 @@ event_end_of_time : // нужно ли такое событие как предопределённое, если оно мож
 
 --------------------------
 
-CRTP (https://www.youtube.com/watch?v=SsIJTyM3rg8  https://www.youtube.com/watch?v=bIKFwEzk4DU)
+CRTP (https://www.youtube.com/watch?v=SsIJTyM3rg8)
 SFINAE
 std::unique_ptr
 std::shared_ptr
@@ -104,6 +104,9 @@ https://habr.com/ru/post/196226/
 https://habr.com/ru/post/104219/
 https://www.youtube.com/watch?v=SEvR78OhGtw
 
+многопоточность:
+https://habr.com/ru/post/443406/
+https://habr.com/ru/post/444464/
 
 
 
