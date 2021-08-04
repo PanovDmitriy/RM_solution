@@ -281,7 +281,7 @@ protected:
     int player_index;
 
 public:
-    sm_player(int player_index_, i_event_invoker* invoker_ = NULL) :
+    sm_player(int player_index_, i_sm_event_invoker* invoker_ = NULL) :
         player_index(player_index_),
         state_machine(invoker_)
     {
@@ -340,7 +340,7 @@ class sm_play :
     public state_machine
 {
 public:
-    sm_play(i_event_invoker* invoker_ = NULL) :
+    sm_play(i_sm_event_invoker* invoker_ = NULL) :
         state_machine(invoker_)
     {
     }

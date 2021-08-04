@@ -41,36 +41,6 @@ bool guard_always_true(const event& ref_e)
 
 
 
-bool isPalindrome(int x)
-{
-    if (x < 0)
-        return false;
-
-    std::string s = std::to_string(x);
-    int len = s.length();
-    if (len == 1)
-        return true;
-
-    int i = 0;
-    int ib = len - 1;
-    while (s[i] == s[ib] && i < ib)
-    {
-        i++;
-        ib--;
-    }
-
-    if (i >= ib)
-        return true;
-
-    if (!(len & 1))
-        if (ib - i < 3)
-            return true;
-
-    return false;
-}
-
-
-
 int main()
 {
     //Singleton& sig = Singleton::getInstance();
@@ -141,33 +111,33 @@ int main()
     event e2final(200, "event 2->final", true);
     event e3final(300, "event 3->final", true);
 
-    state_test s1("state1");
-    state_test s2("state2");
-    state_test s3("state3");
-    initial_state si;
-    final_state sf;
+    state_machine sm(nullptr);
+    rule_machine rm;
+    rm.add_sm(&sm);
 
-    transition_test tinit1("trans init->1");
-    transition_test tinit2("trans init->2");
-    transition_test tinit3("trans init->3");
-    transition_test tfinal1("trans 1->final");
-    transition_test tfinal2("trans 2->final");
-    transition_test tfinal3("trans 3->final");
-    transition_test t12("trans 1->2");
-    transition_test t21("trans 2->1");
-    transition_test t23("trans 2->3");
-    transition_test t32("trans 3->2");
-    transition_test t13("trans 1->3");
-    transition_test t31("trans 3->1");
+    state_test s1(sm, "state1");
+    state_test s2(sm, "state2");
+    state_test s3(sm, "state3");
+    initial_state si (sm);
+    final_state sf (sm);
+
+    transition_test tinit1(sm, "trans init->1");
+    transition_test tinit2(sm, "trans init->2");
+    transition_test tinit3(sm, "trans init->3");
+    transition_test tfinal1(sm, "trans 1->final");
+    transition_test tfinal2(sm, "trans 2->final");
+    transition_test tfinal3(sm, "trans 3->final");
+    transition_test t12(sm, "trans 1->2");
+    transition_test t21(sm, "trans 2->1");
+    transition_test t23(sm, "trans 2->3");
+    transition_test t32(sm, "trans 3->2");
+    transition_test t13(sm, "trans 1->3");
+    transition_test t31(sm, "trans 3->1");
 
     t31.add_guard(guard_always_false);
     t13.add_action(action1);
     t32.add_guard(guard_always_true);
     t23.add_action(action2);
-
-//    rule_machine rm;
-    state_machine sm (nullptr);
-//    rm.add_sm(&sm);
 
     sm.add_event_state_state_transition(einit1.id, &si, &s1, &tinit1);
     sm.add_event_state_state_transition(einit2.id, &si, &s2, &tinit2);
@@ -195,7 +165,7 @@ int main()
     {
         if (sm.get_status() != rm::status::enabled)
         {
-            std::cout << "State machine is not Ensbled." << std::endl << std::endl;
+            std::cout << "State machine is not Enabled." << std::endl << std::endl;
             break;
         }
 
@@ -248,7 +218,7 @@ int main()
 
     sm.check_obj();
 
-    //rm.clear();
+    rm.clear();
 
     return 0;
 }

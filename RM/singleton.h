@@ -26,8 +26,9 @@ private:
     inline static Singleton* p_instance = nullptr;
     inline static SingletonDestroyer destroyer;
 
+    Singleton() {};
+
 public:
-    Singleton() = delete;
     Singleton(const Singleton&) = delete;
     Singleton& operator=(const Singleton&) = delete;
     ~Singleton() {}
