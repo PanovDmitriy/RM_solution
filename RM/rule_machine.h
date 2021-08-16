@@ -6,6 +6,7 @@
 #include <string>
 #include <iostream>
 #include <ctime>
+#include "Singleton.h"
 
 
 
@@ -13,6 +14,58 @@
 
 namespace rm // rule machine
 {
+
+    struct messages
+    {
+        const std::string true_nenabled;
+        const std::string false_curr_state_null;
+        const std::string false_curr_state_nfaund;
+        const std::string true_reject;
+        const std::string false_target_state_null;
+        const std::string true_curr_state_final;
+        const std::string true_ok;
+    };
+
+    struct msgs_en :
+        public messages
+    {
+        msgs_en() :
+            messages
+            { 
+            "Event reject. sm status: not enabled",
+            "Current state is null",
+            "Current state is not faund",
+            "State reject event or Link guard condition reject",
+            "Target state is null",
+            "Current state is Final. State machine is disable",
+            "Ok"
+            }
+        {
+        }
+    };
+
+    struct msgs_ru :
+        messages
+    {
+        msgs_ru() :
+            messages{ "פûגפûג" }
+        {
+        }
+    };
+
+    class sgt_messages :
+        public Singleton
+    {
+    private:
+        messages msgs;
+
+    public:
+        void set(messages msgs_)
+        {
+            msgs = msgs_;
+        }
+    };
+
     class event;
     class state_machine;
     class rule_machine;
@@ -433,44 +486,44 @@ namespace rm // rule machine
             /// pre conditions ///
 
             if (curr_status != status::enabled)
-                return { true, "Event reject. sm status: not enabled" };
+                return { true, msgs_set.true_reject };
 
             // test curr state
             if (!current_state_ptr)
-                return { false, "Current state is null" };
+                return { false, msgs_set.false_curr_state_null };
 
             // find curr state in tab
-            auto it1 = state_transitions_tab.find(current_state_ptr);
-            if (it1 == state_transitions_tab.end())
-                return { false, "Current state is not faund" };
+            auto it_curr_state_in_tab = state_transitions_tab.find(current_state_ptr);
+            if (it_curr_state_in_tab == state_transitions_tab.end())
+                return { false, msgs_set.false_curr_state_nfaund };
 
             // find links from curr state to new state by event in tab
-            auto& mmap_ref = it1->second;
-            auto it2 = mmap_ref.equal_range(ref_e.id);
-            transit_to_state* ptr_ls = nullptr;
-            for (auto& itr = it2.first; itr != it2.second; ++itr)
+            auto& mmap_ref = it_curr_state_in_tab->second; // mmap_ref - std::multimap<id_t /*event id*/, transit_to_state>
+            auto it_transits_by_event = mmap_ref.equal_range(ref_e.id); // transits by event may be multiple
+            transit_to_state* ptr_transit_to_state = nullptr;
+            for (auto& it_transit = it_transits_by_event.first; it_transit != it_transits_by_event.second; ++it_transit) // find valid transit
             {
-                transition* pl = itr->second.ptr_transition;
+                transition* ptr_transit = it_transit->second.ptr_transition;
 
-                if (!pl) // if link is null, then success. link can be NULL. Guard condition will not test
+                if (!ptr_transit) // if link is null, then success. link can be NULL. Guard condition will not test
                 {
-                    ptr_ls = &itr->second;
+                    ptr_transit_to_state = &it_transit->second;
                     break;
                 }
 
                 // check link guard condition 
-                if (pl)
-                    if (pl->is_guard_condition(ref_e))
+                if (ptr_transit)
+                    if (ptr_transit->is_guard_condition(ref_e))
                     {
-                        ptr_ls = &itr->second;
+                        ptr_transit_to_state = &it_transit->second;
                         break;
                     }
             }
-            if (!ptr_ls)
-                return { true, "State reject event or Link guard condition reject" };
+            if (!ptr_transit_to_state)
+                return { true, msgs_set.true_reject };
 
-            if (!(ptr_ls->ptr_target_state))
-                return { false, "Target state is null" };
+            if (!(ptr_transit_to_state->ptr_target_state))
+                return { false, msgs_set.false_target_state_null };
 
             /// - ///
 
@@ -480,22 +533,22 @@ namespace rm // rule machine
             current_state_ptr->do_unactivate(ref_e);
 
             // do link actions
-            if (ptr_ls->ptr_transition)
-                ptr_ls->ptr_transition->do_action(ref_e);
+            if (ptr_transit_to_state->ptr_transition)
+                ptr_transit_to_state->ptr_transition->do_action(ref_e);
 
             // update current state index, change current state from source to target
-            current_state_ptr = ptr_ls->ptr_target_state;
+            current_state_ptr = ptr_transit_to_state->ptr_target_state;
 
             if (current_state_ptr == final_state_ptr)
             {
                 set_status_disabled();
-                return { true, "Current state is Final. State machine is disable" };
+                return { true, msgs_set.true_curr_state_final };
             }
 
             // do activate target (current) state
             current_state_ptr->do_activate(ref_e);
 
-            return { true, "Ok" };
+            return { true, msgs_set.true_ok };
         }
 
     public:
@@ -509,7 +562,7 @@ namespace rm // rule machine
             ls.ptr_target_state = s_target;
             state_transitions_tab[s_source].insert(std::pair<id_t /*event id*/, transit_to_state>(e_id, ls));
 
-            return { true, "Ok" };
+            return { true, msgs_set.true_ok };
         }
 
         result_t add_event_state_state_transition(id_t e_id, initial_state* s_source, state* s_target, transition* t = nullptr)

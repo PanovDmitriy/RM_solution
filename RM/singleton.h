@@ -31,7 +31,7 @@ private:
 public:
     Singleton(const Singleton&) = delete;
     Singleton& operator=(const Singleton&) = delete;
-    ~Singleton() {}
+    virtual ~Singleton() {}
 
     friend class SingletonDestroyer;
 
