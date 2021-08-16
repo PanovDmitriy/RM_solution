@@ -94,6 +94,13 @@ std::unique_ptr
 std::shared_ptr
 std::auto_ptr
 std::weak_ptr
+
+std::invoke
+std::bind
+optional
+variant
+any
+
 https://ravesli.com/urok-193-std-unique_ptr/
 
 https://habr.com/ru/post/188010/

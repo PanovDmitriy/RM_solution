@@ -16,15 +16,31 @@ namespace rm // rule machine
     class event;
     class state_machine;
     class rule_machine;
-    template <class TStateMachine> struct i_sm_event_invoker;
-    template <class TRuleMachine> struct i_rm_event_invoker;
 
-    typedef int id_t;
-    typedef std::tuple <bool, std::string> result_t;
-    typedef void(*ptr_action_t)(const event&);
-    typedef bool(*ptr_guard_t)(const event&);
-    typedef i_sm_event_invoker<state_machine> i_sm_event_invoker_t;
-    typedef i_rm_event_invoker<rule_machine> i_rm_event_invoker_t;
+    template <class TStateMachine> // CRPT interface for event rise callback
+    struct ISMEventInvoker
+    {
+        void invoke(const event& ref_e, bool is_local)
+        {
+            static_cast<TStateMachine*>(this)->invoke(ref_e, is_local);
+        }
+    };
+
+    template <class TRuleMachine> // CRPT interface for event rise callback
+    struct IRMEventInvoker
+    {
+        void invoke(const event& ref_e)
+        {
+            static_cast<TRuleMachine*>(this)->invoke(ref_e);
+        }
+    };
+
+    using id_t = int;
+    using result_t = std::tuple <bool, std::string>;
+    using i_sm_event_invoker_t = ISMEventInvoker<state_machine>;
+    using i_rm_event_invoker_t = IRMEventInvoker<rule_machine>;
+    using ptr_action_t = void (*)(const event&);
+    using ptr_guard_t = bool (*)(const event&);
 
     enum class status { enabled, disabled, paused };
 
@@ -365,23 +381,6 @@ namespace rm // rule machine
 
     /// end state_test ///
 
-    template <class TStateMachine>
-    struct i_sm_event_invoker
-    {
-        void invoke(const event& ref_e, bool is_local)
-        {
-            static_cast<TStateMachine*>(this)->invoke(ref_e, is_local);
-        }
-    };
-
-    template <class TRuleMachine>
-    struct i_rm_event_invoker
-    {
-        void invoke(const event& ref_e)
-        {
-            static_cast<TRuleMachine*>(this)->invoke(ref_e);
-        }
-    };
 
 
     /// state_machine
