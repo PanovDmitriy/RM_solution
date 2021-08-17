@@ -143,6 +143,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="rm_messages.h" />
     <ClInclude Include="rule_machine.h" />
     <ClInclude Include="singleton.h" />
   </ItemGroup>

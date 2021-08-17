@@ -6,7 +6,7 @@
 #include <string>
 #include <iostream>
 #include <ctime>
-#include "Singleton.h"
+#include "rm_messages.h"
 
 
 
@@ -14,58 +14,6 @@
 
 namespace rm // rule machine
 {
-
-    struct messages
-    {
-        const std::string true_nenabled;
-        const std::string false_curr_state_null;
-        const std::string false_curr_state_nfaund;
-        const std::string true_reject;
-        const std::string false_target_state_null;
-        const std::string true_curr_state_final;
-        const std::string true_ok;
-    };
-
-    struct msgs_en :
-        public messages
-    {
-        msgs_en() :
-            messages
-            { 
-            "Event reject. sm status: not enabled",
-            "Current state is null",
-            "Current state is not faund",
-            "State reject event or Link guard condition reject",
-            "Target state is null",
-            "Current state is Final. State machine is disable",
-            "Ok"
-            }
-        {
-        }
-    };
-
-    struct msgs_ru :
-        messages
-    {
-        msgs_ru() :
-            messages{ "פûגפûג" }
-        {
-        }
-    };
-
-    class sgt_messages :
-        public Singleton
-    {
-    private:
-        messages msgs;
-
-    public:
-        void set(messages msgs_)
-        {
-            msgs = msgs_;
-        }
-    };
-
     class event;
     class state_machine;
     class rule_machine;
@@ -441,6 +389,8 @@ namespace rm // rule machine
     class state_machine :
         public i_sm_event_invoker_t
     {
+        using msg = sgt_messages <base_messages>;
+
     public:
         //const id_t id;
 
@@ -481,21 +431,22 @@ namespace rm // rule machine
     public:
         result_t recv_triggering_event(const event& ref_e)
         {
+
             // return: success - true, error - false
 
             /// pre conditions ///
 
             if (curr_status != status::enabled)
-                return { true, msgs_set.true_reject };
+                return { true, msg::get_instance().msgs.true_nenabled };
 
             // test curr state
             if (!current_state_ptr)
-                return { false, msgs_set.false_curr_state_null };
+                return { false, msg::get_instance().msgs.false_curr_state_null };
 
             // find curr state in tab
             auto it_curr_state_in_tab = state_transitions_tab.find(current_state_ptr);
             if (it_curr_state_in_tab == state_transitions_tab.end())
-                return { false, msgs_set.false_curr_state_nfaund };
+                return { false, msg::get_instance().msgs.false_curr_state_nfaund };
 
             // find links from curr state to new state by event in tab
             auto& mmap_ref = it_curr_state_in_tab->second; // mmap_ref - std::multimap<id_t /*event id*/, transit_to_state>
@@ -520,10 +471,10 @@ namespace rm // rule machine
                     }
             }
             if (!ptr_transit_to_state)
-                return { true, msgs_set.true_reject };
+                return { true, msg::get_instance().msgs.true_reject };
 
             if (!(ptr_transit_to_state->ptr_target_state))
-                return { false, msgs_set.false_target_state_null };
+                return { false, msg::get_instance().msgs.false_target_state_null };
 
             /// - ///
 
@@ -542,13 +493,13 @@ namespace rm // rule machine
             if (current_state_ptr == final_state_ptr)
             {
                 set_status_disabled();
-                return { true, msgs_set.true_curr_state_final };
+                return { true, msg::get_instance().msgs.true_curr_state_final };
             }
 
             // do activate target (current) state
             current_state_ptr->do_activate(ref_e);
 
-            return { true, msgs_set.true_ok };
+            return { true, msg::get_instance().msgs.true_ok };
         }
 
     public:
@@ -562,7 +513,7 @@ namespace rm // rule machine
             ls.ptr_target_state = s_target;
             state_transitions_tab[s_source].insert(std::pair<id_t /*event id*/, transit_to_state>(e_id, ls));
 
-            return { true, msgs_set.true_ok };
+            return { true, msg::get_instance().msgs.true_ok };
         }
 
         result_t add_event_state_state_transition(id_t e_id, initial_state* s_source, state* s_target, transition* t = nullptr)

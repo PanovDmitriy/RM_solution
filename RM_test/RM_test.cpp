@@ -45,6 +45,11 @@ int main()
 {
     //Singleton& sig = Singleton::getInstance();
 
+    setlocale(LC_ALL, "Russian");
+
+    sgt_messages<base_messages>& msgs = sgt_messages <base_messages>::get_instance();
+    msgs.set(msgs_ru ());
+
     //DOM dom;
     //dom.reset();
     //dom.sc_main.show("dom main set---------------");

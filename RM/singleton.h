@@ -1,52 +1,56 @@
-// Singleton.h
+// singleton.h
 
 #pragma once
 
-class Singleton;  // опережающее объ€вление
+template <class TDerivedSingleton> class singleton;  // опережающее объ€вление
 
 
-
-class SingletonDestroyer
+template <class TSingleton>
+class singleton_destroyer
 {
 private:
-    Singleton* p_instance = nullptr;
+    TSingleton* p_instance = nullptr;
 
 public:
-    ~SingletonDestroyer();
+    ~singleton_destroyer();
 
-    void initialize(Singleton* p)
+    void initialize(TSingleton* p)
     {
         p_instance = p;
     }
 };
 
-class Singleton
+template <class TDerivedSingleton>
+class singleton
 {
-private:
-    inline static Singleton* p_instance = nullptr;
-    inline static SingletonDestroyer destroyer;
+protected:
+    inline static TDerivedSingleton* p_instance = nullptr;
+    inline static singleton_destroyer<TDerivedSingleton> destroyer;
 
-    Singleton() {};
+    singleton() {};
 
 public:
-    Singleton(const Singleton&) = delete;
-    Singleton& operator=(const Singleton&) = delete;
-    virtual ~Singleton() {}
+    singleton(const singleton<TDerivedSingleton>&) = delete;
+    singleton(const TDerivedSingleton&) = delete;
+    singleton<TDerivedSingleton>& operator=(const singleton<TDerivedSingleton>&) = delete;
+    TDerivedSingleton& operator=(const TDerivedSingleton&) = delete;
+    ~singleton() {}
 
-    friend class SingletonDestroyer;
+    friend class singleton_destroyer<TDerivedSingleton>;
 
-    static Singleton& getInstance()
+    static TDerivedSingleton& get_instance()
     {
         if (!p_instance) 
         {
-            p_instance = new Singleton();
+            p_instance = new TDerivedSingleton();
             destroyer.initialize(p_instance);
         }
         return *p_instance;
     }
 };
 
-SingletonDestroyer::~SingletonDestroyer()
+template <class TSingleton>
+singleton_destroyer<TSingleton>::~singleton_destroyer()
 {
     if (p_instance)
         delete p_instance;
