@@ -13,6 +13,9 @@ namespace rm // rule machine
         const std::string false_target_state_null;
         const std::string true_curr_state_final;
         const std::string true_ok;
+        const std::string param_state_is_null;
+        const std::string init_state_is_already_set;
+        const std::string final_state_is_already_set;
 
         base_messages& operator=(const base_messages& m)
         {
@@ -23,6 +26,9 @@ namespace rm // rule machine
             const_cast<std::string&>(false_target_state_null) = m.false_target_state_null;
             const_cast<std::string&>(true_curr_state_final) = m.true_curr_state_final;
             const_cast<std::string&>(true_ok) = m.true_ok;
+            const_cast<std::string&>(param_state_is_null) = m.param_state_is_null;
+            const_cast<std::string&>(init_state_is_already_set) = m.init_state_is_already_set;
+            const_cast<std::string&>(final_state_is_already_set) = m.final_state_is_already_set;
 
             return *this;
         }
@@ -40,8 +46,11 @@ namespace rm // rule machine
             "State reject event or Link guard condition reject",
             "Target state is null",
             "Current state is Final. State machine is disable",
-            "Ok"
-            }
+            "Ok",
+            "Parameter state ptr is null",
+            "Initial state is already set",
+            "Final state is already set"
+        }
         {
         }
     };
@@ -59,7 +68,10 @@ namespace rm // rule machine
             "Целевое состояние NULL",
             "Текущее состояние Final. Автомат выключен",
             "Ok"
-            }
+            "Параметр state = NULL",
+            "Initial state is already set",
+            "Final state is already set"
+        }
         {
         }
     };

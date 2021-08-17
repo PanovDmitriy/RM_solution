@@ -3,16 +3,13 @@
 #pragma once
 
 #include "..//RM/rule_machine.h"
-#include "..//RM/singleton.h"
 
 #include <iostream>
 #include <list>
 #include <vector>
 #include <algorithm>
 
-//#include "test_Game001.h"
-
-#include "mems.h"
+#include "test_Game001.h"
 
 using namespace rm;
 
@@ -43,8 +40,6 @@ bool guard_always_true(const event& ref_e)
 
 int main()
 {
-    //Singleton& sig = Singleton::getInstance();
-
     setlocale(LC_ALL, "Russian");
 
     sgt_messages<base_messages>& msgs = sgt_messages <base_messages>::get_instance();
@@ -103,127 +98,155 @@ int main()
     //std::cout << "id=" << e.id << std::endl;
     //std::cout << "name=" << e.name << std::endl; 
 
-    event e12(102, "event 1->2", true);
-    event e23(203, "event 2->3", true);
-    event e31(301, "event 3->1", true);
-    event e21(201, "event 2->1", true);
-    event e32(302, "event 3->2", true);
-    event e13(103, "event 1->3", true);
-    event einit1(001, "event init->1", true);
-    event einit2(002, "event init->2", true);
-    event einit3(003, "event init->3", true);
-    event e1final(100, "event 1->final", true);
-    event e2final(200, "event 2->final", true);
-    event e3final(300, "event 3->final", true);
 
-    state_machine sm(nullptr);
-    rule_machine rm;
-    rm.add_sm(&sm);
+    card_set cs1(e_card_set_type::t54);
+    card_set cs2(e_card_set_type::t54);
 
-    state_test s1(sm, "state1");
-    state_test s2(sm, "state2");
-    state_test s3(sm, "state3");
-    initial_state si (sm);
-    final_state sf (sm);
+    cs1.show("cs1: ");
 
-    transition_test tinit1(sm, "trans init->1");
-    transition_test tinit2(sm, "trans init->2");
-    transition_test tinit3(sm, "trans init->3");
-    transition_test tfinal1(sm, "trans 1->final");
-    transition_test tfinal2(sm, "trans 2->final");
-    transition_test tfinal3(sm, "trans 3->final");
-    transition_test t12(sm, "trans 1->2");
-    transition_test t21(sm, "trans 2->1");
-    transition_test t23(sm, "trans 2->3");
-    transition_test t32(sm, "trans 3->2");
-    transition_test t13(sm, "trans 1->3");
-    transition_test t31(sm, "trans 3->1");
+    cs1.reset();
+    cs1.show("cs1.reset: ");
 
-    t31.add_guard(guard_always_false);
-    t13.add_action(action1);
-    t32.add_guard(guard_always_true);
-    t23.add_action(action2);
+    //for (int i = 0; i < 10; i++)
+    //    cs1.move_card_f2b(cs2);
 
-    sm.add_event_state_state_transition(einit1.id, &si, &s1, &tinit1);
-    sm.add_event_state_state_transition(einit2.id, &si, &s2, &tinit2);
-    sm.add_event_state_state_transition(einit3.id, &si, &s3, &tinit3);
-    sm.add_event_state_state_transition(e12.id, &s1, &s2, &t12);
-    sm.add_event_state_state_transition(e21.id, &s2, &s1, &t21);
-    sm.add_event_state_state_transition(e32.id, &s3, &s2, &t32);
-    sm.add_event_state_state_transition(e23.id, &s2, &s3, &t23);
-    sm.add_event_state_state_transition(e13.id, &s1, &s3, &t13);
-    sm.add_event_state_state_transition(e31.id, &s3, &s1, &t31);
-    sm.add_event_state_state_transition(e1final.id, &s1, &sf, &tfinal1);
-    //sm.add_essl(e2final.id, &s2, &sf, &tfinal2);
-    //sm.add_essl(e3final.id, &s3, &sf, &tfinal3);
+    //std::cout << "cs1.after move: " << std::endl;
+    //cs1.show();
 
-    sm.set_status_enabled (einit1);
-    std::cout << std::endl;
-    sm.set_status_paused();
-    sm.set_status_disabled();
-    sm.set_status_enabled(einit2);
-    std::cout << std::endl;
+    //std::cout << "cs2.after move: " << std::endl;
+    //cs2.show();
 
-    int a = 1;
-    int b = 9;
-    for (int i = 0; i < 50; i++)
-    {
-        if (sm.get_status() != rm::status::enabled)
-        {
-            std::cout << "State machine is not Enabled." << std::endl << std::endl;
-            break;
-        }
+    cs1.shuffle();
+    cs1.show("cs1.shuffle:");
 
-        event* ee = &e12;
-        switch (rand() % (b - a + 1) + a)
-        {
-        case 1:
-            ee = &e12;
-            break;
+    std::cout << "" << std::endl;
 
-        case 2:
-            ee = &e21;
-            break;
 
-        case 3:
-            ee = &e32;
-            break;
 
-        case 4:
-            ee = &e23;
-            break;
+    // -------------------------------------------------------- //
+    /// Sm test
 
-        case 5:
-            ee = &e31;
-            break;
+    //event e12(102, "event 1->2", true);
+    //event e23(203, "event 2->3", true);
+    //event e31(301, "event 3->1", true);
+    //event e21(201, "event 2->1", true);
+    //event e32(302, "event 3->2", true);
+    //event e13(103, "event 1->3", true);
+    //event einit1(001, "event init->1", true);
+    //event einit2(002, "event init->2", true);
+    //event einit3(003, "event init->3", true);
+    //event e1final(100, "event 1->final", true);
+    //event e2final(200, "event 2->final", true);
+    //event e3final(300, "event 3->final", true);
 
-        case 6:
-            ee = &e13;
-            break;
+    //state_machine sm(nullptr);
+    //rule_machine rm;
+    //rm.add_sm(&sm);
 
-        case 7:
-            ee = &e1final;
-            break;
+    //state_test s1(sm, "state1");
+    //state_test s2(sm, "state2");
+    //state_test s3(sm, "state3");
+    //initial_state si (sm);
+    //final_state sf (sm);
 
-        case 8:
-            ee = &e2final;
-            break;
+    //transition_test tinit1(sm, "trans init->1");
+    //transition_test tinit2(sm, "trans init->2");
+    //transition_test tinit3(sm, "trans init->3");
+    //transition_test tfinal1(sm, "trans 1->final");
+    //transition_test tfinal2(sm, "trans 2->final");
+    //transition_test tfinal3(sm, "trans 3->final");
+    //transition_test t12(sm, "trans 1->2");
+    //transition_test t21(sm, "trans 2->1");
+    //transition_test t23(sm, "trans 2->3");
+    //transition_test t32(sm, "trans 3->2");
+    //transition_test t13(sm, "trans 1->3");
+    //transition_test t31(sm, "trans 3->1");
 
-        case 9:
-            ee = &e3final;
-            break;
-        }
-        std::cout << "strike [" << i+1 << "] event: " << ee->name << std::endl << "<" << std::endl;
-        auto [rez_b, rem] = sm.recv_triggering_event(*ee);
-        std::cout << "result: " << (rez_b ? "Success (" : "Error (") << rem << ")" << std::endl << ">" << std::endl << std::endl;
+    //t31.add_guard(guard_always_false);
+    //t13.add_action(action1);
+    //t32.add_guard(guard_always_true);
+    //t23.add_action(action2);
 
-        if (!rez_b)
-            break;
-    }
+    //sm.add_event_state_state_transition(einit1.id, &si, &s1, &tinit1);
+    //sm.add_event_state_state_transition(einit2.id, &si, &s2, &tinit2);
+    //sm.add_event_state_state_transition(einit3.id, &si, &s3, &tinit3);
+    //sm.add_event_state_state_transition(e12.id, &s1, &s2, &t12);
+    //sm.add_event_state_state_transition(e21.id, &s2, &s1, &t21);
+    //sm.add_event_state_state_transition(e32.id, &s3, &s2, &t32);
+    //sm.add_event_state_state_transition(e23.id, &s2, &s3, &t23);
+    //sm.add_event_state_state_transition(e13.id, &s1, &s3, &t13);
+    //sm.add_event_state_state_transition(e31.id, &s3, &s1, &t31);
+    //sm.add_event_state_state_transition(e1final.id, &s1, &sf, &tfinal1);
+    ////sm.add_essl(e2final.id, &s2, &sf, &tfinal2);
+    ////sm.add_essl(e3final.id, &s3, &sf, &tfinal3);
 
-    sm.check_obj();
+    //sm.set_status_enabled (einit1);
+    //std::cout << std::endl;
+    //sm.set_status_paused();
+    //sm.set_status_disabled();
+    //sm.set_status_enabled(einit2);
+    //std::cout << std::endl;
 
-    rm.clear();
+    //int a = 1;
+    //int b = 9;
+    //for (int i = 0; i < 50; i++)
+    //{
+    //    if (sm.get_status() != rm::status::enabled)
+    //    {
+    //        std::cout << "State machine is not Enabled." << std::endl << std::endl;
+    //        break;
+    //    }
+
+    //    event* ee = &e12;
+    //    switch (rand() % (b - a + 1) + a)
+    //    {
+    //    case 1:
+    //        ee = &e12;
+    //        break;
+
+    //    case 2:
+    //        ee = &e21;
+    //        break;
+
+    //    case 3:
+    //        ee = &e32;
+    //        break;
+
+    //    case 4:
+    //        ee = &e23;
+    //        break;
+
+    //    case 5:
+    //        ee = &e31;
+    //        break;
+
+    //    case 6:
+    //        ee = &e13;
+    //        break;
+
+    //    case 7:
+    //        ee = &e1final;
+    //        break;
+
+    //    case 8:
+    //        ee = &e2final;
+    //        break;
+
+    //    case 9:
+    //        ee = &e3final;
+    //        break;
+    //    }
+    //    std::cout << "strike [" << i+1 << "] event: " << ee->name << std::endl << "<" << std::endl;
+    //    auto [rez_b, rem] = sm.recv_triggering_event(*ee);
+    //    std::cout << "result: " << (rez_b ? "Success (" : "Error (") << rem << ")" << std::endl << ">" << std::endl << std::endl;
+
+    //    if (!rez_b)
+    //        break;
+    //}
+
+    //sm.check_obj();
+
+    //rm.clear();
 
     return 0;
 }

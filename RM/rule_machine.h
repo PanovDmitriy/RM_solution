@@ -506,7 +506,7 @@ namespace rm // rule machine
         result_t add_event_state_state_transition(id_t e_id, state* s_source, state* s_target, transition* t = nullptr)
         {
             if (!s_source || !s_target)
-                return { false, "Parameter state ptr is null" };
+                return { false, msg::get_instance().msgs.param_state_is_null };
 
             transit_to_state ls;
             ls.ptr_transition = t;
@@ -519,7 +519,7 @@ namespace rm // rule machine
         result_t add_event_state_state_transition(id_t e_id, initial_state* s_source, state* s_target, transition* t = nullptr)
         {
             if (initial_state_ptr && initial_state_ptr != s_source)
-                return { false, "Initial state is already set" }; // initial state must be single!
+                return { false, msg::get_instance().msgs.init_state_is_already_set }; // initial state must be single!
 
             result_t rez = add_event_state_state_transition(e_id, static_cast<state*>(s_source), s_target, t);
             if (std::get<0>(rez))
@@ -531,7 +531,7 @@ namespace rm // rule machine
         result_t add_event_state_state_transition(id_t e_id, state* s_source, final_state* s_target, transition* t = nullptr)
         {
             if (final_state_ptr && final_state_ptr != s_target) // не обязательное условие, чисто для симметрии с initial state
-                return { false, "Final state is already set" }; // final state must be single! но это не точно :)
+                return { false, msg::get_instance().msgs.final_state_is_already_set }; // final state must be single! но это не точно :)
 
             result_t rez = add_event_state_state_transition(e_id, s_source, static_cast<state*>(s_target), t);
             if (std::get<0>(rez))
