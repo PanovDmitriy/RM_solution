@@ -93,6 +93,7 @@ struct card
 {
     const std::variant<s_card_suitnum, e_card_mark> c;
 
+    card() = delete;
     card(const card& c_) : c(c_.c) {}
     card(const e_card_mark m_) : c(m_) {}
     card(const s_card_suitnum sn_) : c(sn_) {}
