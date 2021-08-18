@@ -91,7 +91,9 @@ struct card_name
 
 struct card
 {
-    const std::variant<s_card_suitnum, e_card_mark> c;
+    using cvar = std::variant<s_card_suitnum, e_card_mark>;
+
+    const cvar c;
 
     card() = delete;
     card(const card& c_) : c(c_.c) {}
@@ -106,6 +108,44 @@ struct card
     {
         return std::visit(card_name{}, c);
     }
+
+    card& operator= (const card& ref_c)
+    {
+        const_cast<cvar&>(c) = ref_c.c;
+        return *this;
+    }
+
+    bool operator< (const card& ref_c)
+    {
+        const auto ptr_sn = std::get_if<s_card_suitnum>(&ref_c.c);
+        const auto ptr_sn_c = std::get_if<s_card_suitnum>(&c);
+        if (ptr_sn && ptr_sn_c)
+        {
+            return (ptr_sn->num < ptr_sn_c->num);
+        }
+
+        return false;
+    }
+
+    bool operator== (const card& ref_c)
+    {
+        const auto ptr_sn = std::get_if<s_card_suitnum>(&ref_c.c);
+        const auto ptr_sn_c = std::get_if<s_card_suitnum>(&c);
+        if (ptr_sn && ptr_sn_c)
+        {
+            return (ptr_sn->num == ptr_sn_c->num);
+        }
+
+        const auto ptr_m = std::get_if<e_card_mark>(&ref_c.c);
+        const auto ptr_m_c = std::get_if<e_card_mark>(&c);
+        if (ptr_sn && ptr_sn_c)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
 };
 
 class card_set
@@ -202,6 +242,25 @@ public:
         }
 
         return false;
+    }
+
+    bool move_card_f2f(card_set& to_card_set) // first to first
+    {
+        if (type == to_card_set.type)
+        {
+            if (cards.size() > 0)
+            {
+                to_card_set.cards.splice(to_card_set.cards.begin(), cards, cards.begin());
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    card get_first_card()
+    {
+        return cards.front();
     }
 
     card move_card_f() // first

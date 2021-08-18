@@ -14,27 +14,27 @@
 using namespace rm;
 
 
-void action1(const event& ref_e)
-{
-    std::cout << "action1: event: " << ref_e.id << ", " << ref_e.name << std::endl;
-}
-
-void action2(const event& ref_e)
-{
-    std::cout << "action2: event: " << ref_e.id << ", " << ref_e.name << std::endl;
-}
-
-bool guard_always_false(const event& ref_e)
-{
-    std::cout << "guard_always_false: event: " << ref_e.id << ", " << ref_e.name << std::endl;
-    return false;
-}
-
-bool guard_always_true(const event& ref_e)
-{
-    std::cout << "guard_always_true: event: " << ref_e.id << ", " << ref_e.name << std::endl;
-    return true;
-}
+//void action1(const event& ref_e)
+//{
+//    std::cout << "action1: event: " << ref_e.id << ", " << ref_e.name << std::endl;
+//}
+//
+//void action2(const event& ref_e)
+//{
+//    std::cout << "action2: event: " << ref_e.id << ", " << ref_e.name << std::endl;
+//}
+//
+//bool guard_always_false(const event& ref_e)
+//{
+//    std::cout << "guard_always_false: event: " << ref_e.id << ", " << ref_e.name << std::endl;
+//    return false;
+//}
+//
+//bool guard_always_true(const event& ref_e)
+//{
+//    std::cout << "guard_always_true: event: " << ref_e.id << ", " << ref_e.name << std::endl;
+//    return true;
+//}
 
 
 
@@ -63,6 +63,23 @@ int main()
 
     // -------------------------------------------------------- //
 
+    initial_state st_init_play(sm_play);
+    final_state st_final_play(sm_play);
+    state_test st_await_play_start(sm_play, "st_await_play_start");
+    state_pre_play st_preplay(sm_play, "st_preplay", dom);
+    state_pre_play st_turn_play(sm_play, "st_turn_play", dom);
+
+    sm_play.add_event_state_state_transition(dom.e_init_play.id, &st_init_play, &st_await_play_start);
+    sm_play.add_event_state_state_transition(dom.e_start_play.id, &st_await_play_start, &st_preplay);
+    sm_play.add_event_state_state_transition(dom.e_card_on_table.id, &st_preplay, &st_turn_play);
+    sm_play.add_event_state_state_transition(dom.e_card_on_table.id, &st_turn_play, &st_turn_play);
+    sm_play.add_event_state_state_transition(dom.e_no_card.id, &st_turn_play, &st_final_play);
+
+    // -------------------------------------------------------- //
+
+    sm_players.set_status_enabled(dom.e_init_players);
+    sm_play.set_status_enabled(dom.e_init_play);
+    rm.invoke(dom.e_start_play);
 
     // -------------------------------------------------------- //
 
