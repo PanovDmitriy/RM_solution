@@ -42,8 +42,7 @@ int main()
 {
     setlocale(LC_ALL, "Russian");
 
-    sgt_messages<base_messages>& msgs = sgt_messages <base_messages>::get_instance();
-    msgs.set(msgs_ru ());
+    sgt_messages <base_messages>::get_instance().set(msgs_ru ());
 
     //DOM dom;
     //dom.reset();

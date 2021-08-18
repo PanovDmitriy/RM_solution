@@ -14,41 +14,41 @@ using namespace rm;
 
 
 
-//class DOM
-//{
-//public:
-//    card_set sc_main;
-//
-//    // player1
-//    card_set sc_player1;
-//    bool is_player1_turned = false;
-//
-//    // player2
-//    card_set sc_player2;
-//    bool is_player2_turned = false;
-//
-//public:
-//    DOM() :
-//        sc_main(e_card_set_type::t52),
-//        sc_player1(e_card_set_type::t52),
-//        sc_player2(e_card_set_type::t52)
-//    {
-//    }
-//
-//    void reset()
-//    {
-//        sc_main.reset();
-//        sc_player1.clear();
-//        sc_player2.clear();
-//    }
-//
-//    bool is_all_turned()
-//    {
-//        return is_player1_turned && is_player2_turned;
-//    }
-//};
-//
-///////////////////////
+class DOM
+{
+public:
+    card_set sc_main;
+
+    // player1
+    card_set sc_player1;
+    //bool is_player1_turned = false;
+
+    // player2
+    card_set sc_player2;
+    //bool is_player2_turned = false;
+
+public:
+    DOM() :
+        sc_main(e_card_set_type::t52),
+        sc_player1(e_card_set_type::t52),
+        sc_player2(e_card_set_type::t52)
+    {
+    }
+
+    void reset()
+    {
+        sc_main.reset();
+        sc_player1.clear();
+        sc_player2.clear();
+    }
+
+    bool is_all_turned()
+    {
+        return false;// is_player1_turned&& is_player2_turned;
+    }
+};
+
+/////////////////////
 //
 //class sm_player :
 //    public state_machine

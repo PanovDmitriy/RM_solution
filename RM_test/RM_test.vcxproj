@@ -149,6 +149,9 @@
     <ClInclude Include="play_cards.h" />
     <ClInclude Include="test_Game001.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Пьяница.vsdx" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
