@@ -41,70 +41,38 @@ bool guard_always_true(const event& ref_e)
 int main()
 {
     setlocale(LC_ALL, "Russian");
-
     sgt_messages <base_messages>::get_instance().set(msgs_ru ());
 
-    //DOM dom;
-    //dom.reset();
-    //dom.sc_main.show("dom main set---------------");
+    DOM dom;
 
-    //event ev_next_sub_turn(1, "next_sub_turn");
-    //event ev_next_turn(2, "next_turn");
-    //event ev_card_on_table(3, "card_on_table");
-    //event ev_no_card(4, "no_card");
-
-    //rule_machine rm;
-
-    //sm_player sm_gamer1(1, &rm);
-    //rm.add_sm(&sm_gamer1);
-    //st_turn st_turn_obj1(sm_gamer1);
-    //sm_gamer1.add_item(ev_next_turn.id, nullptr, &st_turn_obj1, &st_turn_obj1, true);
-    //sm_gamer1.add_item(ev_next_sub_turn.id, nullptr, &st_turn_obj1, &st_turn_obj1);
-
-    //sm_player sm_gamer2(2, &rm);
-    //rm.add_sm(&sm_gamer2);
-    //st_turn st_turn_obj2(sm_gamer2);
-    //sm_gamer2.add_item(ev_next_turn.id, nullptr, &st_turn_obj2, &st_turn_obj2, true);
-    //sm_gamer2.add_item(ev_next_sub_turn.id, nullptr, &st_turn_obj2, &st_turn_obj2);
-
-    //sm_play sm_game(&rm);
-    //rm.add_sm(&sm_game);
-    //st_pre_game st_pre_game_obj(sm_game);
-    //st_game st_game_obj(sm_game);
-    //state st_end_obj("state end");
-    //ln_end ln_end_obj(sm_game);
-    //ln_first_turn ln_first_turn_obj(sm_game);
-    //ln_com_turn ln_com_turn_obj(sm_game);
-    //sm_game.add_item(ev_card_on_table.id, &ln_first_turn_obj, &st_pre_game_obj, &st_game_obj, true);
-    //sm_game.add_item(ev_card_on_table.id, &ln_com_turn_obj, &st_game_obj, &st_game_obj);
-    //sm_game.add_item(ev_no_card.id, &ln_end_obj, &st_game_obj, &st_end_obj);
-
-    //sm_gamer1.check_obj();
-    //sm_gamer2.check_obj();
-    //sm_game.check_obj();
-
-    ////card_set cs1, cs2;
-    ////while (true)
-    ////{
-    ////    if (!cs.move_card_f2b(cs1)) break;
-    ////    if (!cs.move_card_f2b(cs2)) break;
-    ////}
-    ////cs.show("cs");
-    ////cs1.show("cs1");
-    ////cs2.show("cs2");
-
-    //rm::event e(111, "e111");
-    //std::cout << "id=" << e.id << std::endl;
-    //std::cout << "name=" << e.name << std::endl; 
+    rule_machine rm;
+    state_machine sm_players(&rm);
+    state_machine sm_play(&rm);
 
 
-    card_set cs1(e_card_set_type::t54);
-    card_set cs2(e_card_set_type::t54);
+    // -------------------------------------------------------- //
 
-    cs1.show("cs1: ");
+    initial_state st_init_players(sm_players);
+    state_test st_await_player_starts(sm_players, "st_await_player_starts");
+    state_turn_player st_turn_players(sm_players, "st_turn_players", dom);
 
-    cs1.reset();
-    cs1.show("cs1.reset: ");
+    sm_players.add_event_state_state_transition(dom.e_init_players.id, &st_init_players, &st_await_player_starts);
+    sm_players.add_event_state_state_transition(dom.e_next_turn.id, &st_await_player_starts, &st_turn_players);
+    sm_players.add_event_state_state_transition(dom.e_next_turn.id, &st_turn_players, &st_turn_players);
+    sm_players.add_event_state_state_transition(dom.e_next_sub_turn.id, &st_turn_players, &st_turn_players);
+
+    // -------------------------------------------------------- //
+
+
+    // -------------------------------------------------------- //
+
+    //card_set cs1(e_card_set_type::t54);
+    //card_set cs2(e_card_set_type::t54);
+
+    //cs1.show("cs1: ");
+
+    //cs1.reset();
+    //cs1.show("cs1.reset: ");
 
     //for (int i = 0; i < 10; i++)
     //    cs1.move_card_f2b(cs2);
@@ -115,10 +83,10 @@ int main()
     //std::cout << "cs2.after move: " << std::endl;
     //cs2.show();
 
-    cs1.shuffle();
-    cs1.show("cs1.shuffle:");
+    //cs1.shuffle();
+    //cs1.show("cs1.shuffle:");
 
-    std::cout << "" << std::endl;
+    //std::cout << "" << std::endl;
 
 
 

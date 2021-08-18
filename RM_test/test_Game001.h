@@ -12,32 +12,35 @@ using namespace rm;
 /////////////////////////////////////////////////// drank //////////////////////////////////////////////////////
 
 
-
+class state_turn_player;
+class event_no_card;
 
 class DOM
 {
 public:
-    card_set sc_main;
+    card_set sc_table;
+    card_set sc_under_table;
 
     // player1
     card_set sc_player1;
-    //bool is_player1_turned = false;
 
     // player2
     card_set sc_player2;
-    //bool is_player2_turned = false;
 
 public:
     DOM() :
-        sc_main(e_card_set_type::t52),
+        sc_table(e_card_set_type::t52),
+        sc_under_table(e_card_set_type::t52),
         sc_player1(e_card_set_type::t52),
         sc_player2(e_card_set_type::t52)
     {
+        reset();
     }
 
     void reset()
     {
-        sc_main.reset();
+        sc_table.clear();
+        sc_under_table.reset();
         sc_player1.clear();
         sc_player2.clear();
     }
@@ -46,206 +49,84 @@ public:
     {
         return false;// is_player1_turned&& is_player2_turned;
     }
+
+    friend class state_turn_player;
+
+public:
+    event e_init_players {10, "init_players"};
+    event e_init_play {20, "init_play"};
+    event e_next_turn {30, "next_turn"};
+    event e_next_sub_turn {40, "next_sub_turn"};
+    event e_start_play {50, "start_play"};
+    event e_card_on_table {60, "card_on_table"};
+    event_no_card e_on_card {70, "no_card"};
 };
 
-/////////////////////
-//
-//class sm_player :
-//    public state_machine
-//{
-//protected:
-//    int player_index;
-//
-//public:
-//    sm_player(int player_index_, i_sm_event_invoker* invoker_ = NULL) :
-//        player_index(player_index_),
-//        state_machine(invoker_)
-//    {
-//    }
-//
-//public:
-//    friend class st_turn;
-//};
-//
-//class st_turn :
-//    public state
-//{
-//protected:
-//    sm_player& owner_ref;
-//
-//public:
-//    st_turn(sm_player& owner_) :
-//        owner_ref(owner_)
-//    {
-//    }
-//
-//    std::string to_string() override
-//    {
-//        return "state st_turn";
-//    }
-//
-//    void do_entry_action(const event& ref_e) override
-//    {
-//        std::cout << "st_turn : do_entry_action (" << ref_e.name << ")" << std::endl;
-//
-//        //вход /
-//        //    взять карту(1 для next_turn, 2 для next_sub_turn),
-//        //    если нет, сообщить "no_cards",
-//        //    если есть,
-//        //    положить на стол,
-//        //    сообщить "card_on_table"
-//        //if (false)
-//        //{
-//        //    if (dom->sc_main.move_card_f2b(dom->sc_player1))
-//        //    {
-//
-//        //    }
-//        //    else
-//        //    {
-//
-//        //    }
-//        //}
-//        //else
-//        //    std::cout << "DOM is not set" << std::endl;
-//    }
-//};
-//
-///////////////////////
-//
-//class sm_play :
-//    public state_machine
-//{
-//public:
-//    sm_play(i_sm_event_invoker* invoker_ = NULL) :
-//        state_machine(invoker_)
-//    {
-//    }
-//};
-//
-//class st_pre_game :
-//    public state
-//{
-//protected:
-//    sm_play& owner_ref;
-//
-//public:
-//    st_pre_game(sm_play& owner_) :
-//        owner_ref(owner_)
-//    {
-//    }
-//
-//    std::string to_string() override
-//    {
-//        return "state st_pre_game";
-//    }
-//
-//    virtual void do_entry_action(const event& ref_e) override
-//    {
-//        std::cout << "st_pre_game : do_entry_action (" << ref_e.name << ")" << std::endl;
-//
-//        //вход /
-//        //    раздать карты
-//        //    сообщить "next_turn"
-//    }
-//};
-//
-//class st_game :
-//    public state
-//{
-//protected:
-//    sm_play& owner_ref;
-//
-//public:
-//    st_game(sm_play& owner_) :
-//        owner_ref(owner_)
-//    {
-//    }
-//
-//    std::string to_string() override
-//    {
-//        return "state st_game";
-//    }
-//
-//    virtual void do_entry_action(const event& ref_e) override
-//    {
-//        std::cout << "st_game : do_entry_action (" << ref_e.name << ")" << std::endl;
-//
-//        //вход /
-//        //    сравнить
-//        //    если не равны,
-//        //    передать карты
-//        //    сообщить "next_turn"
-//        //    если равны,
-//        //    сообщить "next_sub_turn"
-//    }
-//};
-//
-//class ln_end :
-//    public transition
-//{
-//protected:
-//    sm_play& owner_ref;
-//
-//public:
-//    ln_end(sm_play& owner_) :
-//        owner_ref(owner_)
-//    {
-//    }
-//
-//    void do_action(const event& ref_e) override
-//    {
-//        std::cout << "ln_end : do_action (" << ref_e.name << ")" << std::endl;
-//
-//        // get winner
-//        std::cout << "------------------------------------------------------\n";
-//        std::cout << "Winner: " << std::endl;
-//        std::cout << "------------------------------------------------------\n";
-//    }
-//};
-//
-//class ln_first_turn :
-//    public transition
-//{
-//protected:
-//    sm_play& owner_ref;
-//
-//public:
-//    ln_first_turn(sm_play& owner_) :
-//        owner_ref(owner_)
-//    {
-//    }
-//
-//    bool is_guard_condition(const event& ref_e) override
-//    {
-//        std::cout << "ln_first_turn : guard_condition (" << ref_e.name << ")" << std::endl;
-//
-//        // all turned ?
-//
-//        return true;
-//    }
-//};
-//
-//class ln_com_turn :
-//    public transition
-//{
-//protected:
-//    sm_play& owner_ref;
-//
-//public:
-//    ln_com_turn(sm_play& owner_) :
-//        owner_ref(owner_)
-//    {
-//    }
-//
-//    bool is_guard_condition(const event& ref_e) override
-//    {
-//        std::cout << "ln_com_turn : guard_condition (" << ref_e.name << ")" << std::endl;
-//
-//        // all turned ?
-//
-//        return true;
-//    }
-//};
+class event_no_card :
+    event
+{
+    int player_index = -1;
 
+public:
+    event_no_card() = delete;
+
+    event_no_card(id_t id_, std::string name_) :
+        event (id_, name_)
+    {
+    }
+
+    event_no_card& set_player_index(int player_index_)
+    {
+        player_index = player_index_;
+        return *this;
+    }
+
+    int get_player_index()
+    {
+        return player_index;
+    }
+};
+
+class state_turn_player :
+    public state_test
+{
+private:
+    DOM& dom;
+
+public:
+    state_turn_player(i_sm_event_invoker_t& invoker_, std::string _name, DOM& dom_) :
+        state_test(invoker_, _name),
+        dom (dom_)
+    {
+    }
+
+protected:
+    void do_entry_action(const event& ref_e) override
+    {
+        std::cout << "state " << name << " * event [ " << ref_e.name << ", " << std::to_string(ref_e.id) << " ]: entry action" << std::endl;
+
+        //вход 
+
+        //карты от игрока на стол (1 для next_turn, 2 для next_sub_turn),
+        switch (ref_e.id)
+        {
+        case 30: //next_turn
+            if (!dom.sc_player1.move_card_f2b(dom.sc_table))
+                this->invoker.invoke(dom.e_on_card.set_player_index(1), false);
+            if (!dom.sc_player2.move_card_f2b(dom.sc_table))
+                this->invoker.invoke(dom.e_on_card.set_player_index(2), false);
+            break;
+        case 40: //next_sub_turn
+            break;
+        }
+        //если нет, сообщить "no_cards",
+        
+        //если есть,
+
+        //положить на стол,
+        
+        //сообщить "card_on_table"
+    }
+};
 
 /////////////////////////////////////////////////// end drank //////////////////////////////////////////////////////

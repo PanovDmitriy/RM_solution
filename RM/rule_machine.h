@@ -62,7 +62,7 @@ namespace rm // rule machine
         {
         }
 
-        event(id_t id_, std::string name_, bool is_local_ = false)
+        event(id_t id_, std::string name_)
             : id(id_), name(name_)
         {
         }
