@@ -48,6 +48,8 @@ int main()
     rule_machine rm;
     state_machine sm_players(&rm);
     state_machine sm_play(&rm);
+    rm.add_sm(&sm_players);
+    rm.add_sm(&sm_play);
 
 
     // -------------------------------------------------------- //
@@ -67,7 +69,7 @@ int main()
     final_state st_final_play(sm_play);
     state_test st_await_play_start(sm_play, "st_await_play_start");
     state_pre_play st_preplay(sm_play, "st_preplay", dom);
-    state_pre_play st_turn_play(sm_play, "st_turn_play", dom);
+    state_turn_play st_turn_play(sm_play, "st_turn_play", dom);
 
     sm_play.add_event_state_state_transition(dom.e_init_play.id, &st_init_play, &st_await_play_start);
     sm_play.add_event_state_state_transition(dom.e_start_play.id, &st_await_play_start, &st_preplay);
@@ -79,6 +81,7 @@ int main()
 
     sm_players.set_status_enabled(dom.e_init_players);
     sm_play.set_status_enabled(dom.e_init_play);
+    rm.set_status_enabled();
     rm.invoke(dom.e_start_play);
 
     // -------------------------------------------------------- //

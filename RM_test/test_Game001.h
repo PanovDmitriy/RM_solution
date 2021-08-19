@@ -19,8 +19,6 @@ class state_turn_play;
 class event_no_card :
     public event
 {
-    int player_index = -1;
-
 public:
     event_no_card() = delete;
 
@@ -31,22 +29,14 @@ public:
 
     event_no_card& set_player_index(int player_index_)
     {
-        player_index = player_index_;
+        event::param = player_index_;
         return *this;
-    }
-
-    int get_player_index()
-    {
-        return player_index;
     }
 };
 
 class event_card_on_table :
     public event
 {
-    card player1_card_on_table = e_card_mark::Joker;
-    card player2_card_on_table = e_card_mark::Joker;
-
 public:
     event_card_on_table() = delete;
 
@@ -55,22 +45,9 @@ public:
     {
     }
 
-    void set_player1_card_on_table(const card& c)
+    void set_players_card_on_table(card c1, card c2)
     {
-        player1_card_on_table = c;
-    }
-    void set_player2_card_on_table(const card& c)
-    {
-        player2_card_on_table = c;
-    }
-
-    card get_player1_card_on_table()
-    {
-        return player1_card_on_table;
-    }
-    card get_player2_card_on_table()
-    {
-        return player2_card_on_table;
+        param = std::pair<card, card>(c1, c2);
     }
 };
 
@@ -84,6 +61,8 @@ public:
 
     // player2
     card_set sc_player2;
+
+    int turn_n = 1;
 
 public:
     DOM() :
@@ -111,13 +90,21 @@ public:
     friend class state_pre_play;
 
 public:
-    event e_init_players = event (10, "init_players");
-    event e_init_play = event (20, "init_play");
-    event e_next_turn = event(30, "next_turn");
-    event e_next_sub_turn = event(40, "next_sub_turn");
-    event e_start_play = event(50, "start_play");
-    event_card_on_table e_card_on_table = event_card_on_table(60, "card_on_table");
-    event_no_card e_no_card = event_no_card(70, "no_card");
+    const id_t init_players_id = 10;
+    const id_t init_play_id = 20;
+    const id_t next_turn_id = 30;
+    const id_t next_sub_turn_id = 40;
+    const id_t start_play_id = 50;
+    const id_t card_on_table_id = 60;
+    const id_t no_card_id = 70;
+
+    event e_init_players = event (init_players_id, "init_players");
+    event e_init_play = event (init_play_id, "init_play");
+    event e_next_turn = event(next_turn_id, "next_turn");
+    event e_next_sub_turn = event(next_sub_turn_id, "next_sub_turn");
+    event e_start_play = event(start_play_id, "start_play");
+    event_card_on_table e_card_on_table = event_card_on_table(card_on_table_id, "card_on_table");
+    event_no_card e_no_card = event_no_card(no_card_id, "no_card");
 };
 
 class state_turn_player :
@@ -136,61 +123,68 @@ public:
 protected:
     void do_entry_action(const event& ref_e) override
     {
-        std::cout << "state " << name << " * event [ " << ref_e.name << ", " << std::to_string(ref_e.id) << " ]: entry action" << std::endl;
+        //std::cout << "state " << name << " * event [ " << ref_e.name << ", " << std::to_string(ref_e.id) << " ]: entry action" << std::endl;
 
         //вход 
 
         //карты от игрока на стол (1 дл€ next_turn, 2 дл€ next_sub_turn),
-        switch (ref_e.id)
+        if (ref_e.id == dom.next_turn_id)
         {
-        case 30: //next_turn
-            if (!dom.sc_player1.move_card_f2b(dom.sc_table))
+            std::cout << "’од: " << dom.turn_n << std::endl;
+            if (!dom.sc_player1.move_card_f2f(dom.sc_table))
             {
-                std::cout << "player1: no card!" << std::endl;
+                std::cout << "player1: нет карт!" << std::endl;
                 this->invoker.invoke(dom.e_no_card.set_player_index(1), false);
             }
-            std::cout << "player1: card_on_table: " << dom.sc_table.get_first_card().get_name() << std::endl;
-            dom.e_card_on_table.set_player1_card_on_table (dom.sc_table.get_first_card());
+            std::cout << "player1: " << dom.sc_table.get_first_card().get_name();
+            std::cout << " осталось: " << dom.sc_player1.get_size() << std::endl;
+            card c1 = dom.sc_table.get_first_card();
 
-            if (!dom.sc_player2.move_card_f2b(dom.sc_table))
+            if (!dom.sc_player2.move_card_f2f(dom.sc_table))
             {
-                std::cout << "player2: no card!" << std::endl;
+                std::cout << "player2: нет карт!" << std::endl;
                 this->invoker.invoke(dom.e_no_card.set_player_index(2), false);
             }
-            std::cout << "player2: card_on_table: " << dom.sc_table.get_first_card().get_name() << std::endl;
-            dom.e_card_on_table.set_player2_card_on_table(dom.sc_table.get_first_card());
-
-            break;
-        case 40: //next_sub_turn
-            if (!dom.sc_player1.move_card_f2b(dom.sc_table))
+            std::cout << "player2: " << dom.sc_table.get_first_card().get_name();
+            std::cout << " осталось: " << dom.sc_player2.get_size() << std::endl;
+            card c2 = dom.sc_table.get_first_card();
+            dom.e_card_on_table.set_players_card_on_table(c1, c2);
+        }
+        else if (ref_e.id == dom.next_sub_turn_id)
+        {
+            std::cout << "ƒвойной ход: " << dom.turn_n << std::endl;
+            if (!dom.sc_player1.move_card_f2f(dom.sc_table))
             {
-                std::cout << "player1: no card!" << std::endl;
+                std::cout << "player1: нет карт!" << std::endl;
                 this->invoker.invoke(dom.e_no_card.set_player_index(1), false);
             }
-            std::cout << "player1: card_on_table: " << dom.sc_table.get_first_card().get_name() << std::endl;
-            if (!dom.sc_player2.move_card_f2b(dom.sc_table))
+            std::cout << "player1: " << dom.sc_table.get_first_card().get_name();
+            std::cout << " осталось: " << dom.sc_player1.get_size() << std::endl;
+            if (!dom.sc_player1.move_card_f2f(dom.sc_table))
             {
-                std::cout << "player1: no card!" << std::endl;
+                std::cout << "player1: нет карт!" << std::endl;
                 this->invoker.invoke(dom.e_no_card.set_player_index(2), false);
             }
-            std::cout << "player1: card_on_table: " << dom.sc_table.get_first_card().get_name() << std::endl;
-            dom.e_card_on_table.set_player1_card_on_table(dom.sc_table.get_first_card());
-
-            if (!dom.sc_player1.move_card_f2b(dom.sc_table))
+            std::cout << "player1: " << dom.sc_table.get_first_card().get_name();
+            std::cout << " осталось: " << dom.sc_player1.get_size() << std::endl;
+            card c1 = dom.sc_table.get_first_card();
+            //
+            if (!dom.sc_player2.move_card_f2f(dom.sc_table))
             {
-                std::cout << "player2: no card!" << std::endl;
+                std::cout << "player2: нет карт!" << std::endl;
                 this->invoker.invoke(dom.e_no_card.set_player_index(2), false);
             }
-            std::cout << "player2: card_on_table: " << dom.sc_table.get_first_card().get_name() << std::endl;
-            if (!dom.sc_player2.move_card_f2b(dom.sc_table))
+            std::cout << "player2: " << dom.sc_table.get_first_card().get_name();
+            std::cout << " осталось: " << dom.sc_player2.get_size() << std::endl;
+            if (!dom.sc_player2.move_card_f2f(dom.sc_table))
             {
-                std::cout << "player2: no card!" << std::endl;
+                std::cout << "player2: нет карт!" << std::endl;
                 this->invoker.invoke(dom.e_no_card.set_player_index(2), false);
             }
-            std::cout << "player2: card_on_table: " << dom.sc_table.get_first_card().get_name() << std::endl;
-            dom.e_card_on_table.set_player2_card_on_table(dom.sc_table.get_first_card());
-
-            break;
+            std::cout << "player2: " << dom.sc_table.get_first_card().get_name();
+            std::cout << " осталось: " << dom.sc_player2.get_size() << std::endl;
+            card c2 = dom.sc_table.get_first_card();
+            dom.e_card_on_table.set_players_card_on_table(c1, c2);
         }
         //если нет, сообщить "no_cards",
 
@@ -199,6 +193,9 @@ protected:
         //положить на стол,
         
         //сообщить "card_on_table"
+
+        dom.turn_n++;
+
         this->invoker.invoke(dom.e_card_on_table, false);
     }
 };
@@ -219,14 +216,24 @@ public:
 protected:
     void do_entry_action(const event& ref_e) override
     {
-        std::cout << "state " << name << " * event [ " << ref_e.name << ", " << std::to_string(ref_e.id) << " ]: entry action" << std::endl;
+        //std::cout << "state " << name << " * event [ " << ref_e.name << ", " << std::to_string(ref_e.id) << " ]: entry action" << std::endl;
 
         //вход 
 
         //  раздать карты
         dom.reset();
         dom.sc_table.shuffle();
-        while (dom.sc_table.move_card_f2f(dom.sc_player1) || dom.sc_table.move_card_f2f(dom.sc_player2));
+        while (true)
+        {
+            if (!dom.sc_table.move_card_f2f(dom.sc_player1))
+                break;
+            if (!dom.sc_table.move_card_f2f(dom.sc_player2))
+                break;
+        }
+
+        std::cout << " арты розданы: " << std::endl;
+        std::cout << "Player1 карты: " << dom.sc_player1.get_size() << std::endl;
+        std::cout << "Player2 карты: " << dom.sc_player2.get_size() << std::endl;
 
         //сообщить "next_turn"
         invoker.invoke(dom.e_next_turn, false);
@@ -249,15 +256,11 @@ public:
 protected:
     void do_entry_action(const event& ref_e) override
     {
-        std::cout << "state " << name << " * event [ " << ref_e.name << ", " << std::to_string(ref_e.id) << " ]: entry action" << std::endl;
+        //std::cout << "state " << name << " * event [ " << ref_e.name << ", " << std::to_string(ref_e.id) << " ]: entry action" << std::endl;
 
         //вход 
 
-        //if (ref_e.id == 60)
-        //{
-        //}
-        event_card_on_table* ptr_e = dynamic_cast<event_card_on_table*>(&const_cast<event&>(ref_e));
-        if (ptr_e)
+        if (ref_e.id == dom.card_on_table_id)
         {
             //сравнить
             //если не равны,
@@ -265,26 +268,27 @@ protected:
             //сообщить "next_turn"
             //если равны,
             //сообщить "next_sub_turn"
-            card c1 = ptr_e->get_player1_card_on_table();
-            card c2 = ptr_e->get_player2_card_on_table();
+            auto [c1, c2] = std::any_cast<std::pair<card, card>>(const_cast<event&>(ref_e).get_param());
             if (c1 < c2)
             {
                 std::cout << c1.get_name() << " < " << c2.get_name() << std::endl;
-                std::cout << "cards move to player2" << std::endl;
-                while (dom.sc_table.move_card_f2b(dom.sc_player2));
+                std::cout << dom.sc_table.get_size() << " карты уход€т к Player2" << std::endl;
+                dom.sc_table.move_all_cards_f2b(dom.sc_player2);
+                std::cout << " арт: " << dom.sc_player1.get_size() << " + " << dom.sc_player2.get_size() << " + стол: " << dom.sc_table.get_size() << std::endl;
                 invoker.invoke(dom.e_next_turn, false);
             }
             else if (c2 < c1)
             {
                 std::cout << c1.get_name() << " > " << c2.get_name() << std::endl;
-                std::cout << "cards move to player1" << std::endl;
-                while (dom.sc_table.move_card_f2b(dom.sc_player1));
+                std::cout << dom.sc_table.get_size () << " карты уход€т к Player1" << std::endl;
+                dom.sc_table.move_all_cards_f2b(dom.sc_player1);
+                std::cout << " арт: " << dom.sc_player1.get_size() << " + " << dom.sc_player2.get_size() << " + стол: " << dom.sc_table.get_size() << std::endl;
                 invoker.invoke(dom.e_next_turn, false);
             }
             else if (c1 == c2)
             {
                 std::cout << c1.get_name() << " = " << c2.get_name() << std::endl;
-                std::cout << "cards stay on table" << std::endl;
+                std::cout << "карты остаютс€ на столе" << std::endl;
                 invoker.invoke(dom.e_next_sub_turn, false);
             }
         }

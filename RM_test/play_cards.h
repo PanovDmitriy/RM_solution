@@ -121,7 +121,7 @@ struct card
         const auto ptr_sn_c = std::get_if<s_card_suitnum>(&c);
         if (ptr_sn && ptr_sn_c)
         {
-            return (ptr_sn->num < ptr_sn_c->num);
+            return (ptr_sn_c->num < ptr_sn->num);
         }
 
         return false;
@@ -244,6 +244,20 @@ public:
         return false;
     }
 
+    bool move_all_cards_f2b(card_set& to_card_set) // first to back // переделать в инт - кол-во переданных карт
+    {
+        if (type == to_card_set.type)
+        {
+            while (cards.size() > 0)
+            {
+                to_card_set.cards.splice(to_card_set.cards.end(), cards, cards.begin());
+            }
+            return true;
+        }
+
+        return false;
+    }
+
     bool move_card_f2f(card_set& to_card_set) // first to first
     {
         if (type == to_card_set.type)
@@ -293,6 +307,11 @@ public:
     void clear()
     {
         cards.clear();
+    }
+
+    int get_size()
+    {
+        return cards.size();
     }
 
     void show(std::string name)

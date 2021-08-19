@@ -6,6 +6,7 @@
 #include <string>
 #include <iostream>
 #include <ctime>
+#include <any>
 #include "rm_messages.h"
 
 
@@ -54,6 +55,9 @@ namespace rm // rule machine
         const std::string name; // имя, не важное
         const std::time_t time = std::time(nullptr); // время создания события
 
+    protected:
+        std::any param;
+
     public:
         event() = delete;
 
@@ -74,6 +78,11 @@ namespace rm // rule machine
         bool operator != (const event& ref_e)
         {
             return !(id == ref_e.id);
+        }
+
+        std::any get_param()
+        {
+            return param;
         }
 
         virtual ~event() {};
@@ -362,15 +371,15 @@ namespace rm // rule machine
     protected:
         void do_entry_action(const event& ref_e) override
         {
-            std::cout << "state " << name << " * event [ " << ref_e.name << ", " << std::to_string(ref_e.id) << " ]: entry action" << std::endl;
+            //std::cout << "state " << name << " * event [ " << ref_e.name << ", " << std::to_string(ref_e.id) << " ]: entry action" << std::endl;
         }
         void do_exit_action(const event& ref_e) override
         {
-            std::cout << "state " << name << " * event [ " << ref_e.name << ", " << std::to_string(ref_e.id) << " ]: exit action" << std::endl;
+            //std::cout << "state " << name << " * event [ " << ref_e.name << ", " << std::to_string(ref_e.id) << " ]: exit action" << std::endl;
         }
         void do_internal_action(const event& ref_e) override
         {
-            std::cout << "state " << name << " * event [ " << ref_e.name << ", " << std::to_string(ref_e.id) << " ]: internal action" << std::endl;
+            //std::cout << "state " << name << " * event [ " << ref_e.name << ", " << std::to_string(ref_e.id) << " ]: internal action" << std::endl;
         }
 
     public:
@@ -646,13 +655,13 @@ namespace rm // rule machine
         {
             return curr_status;
         }
-        void set_status_enabled(const event& e)
+        void set_status_enabled() //const event& e)
         {
             curr_status = status::enabled;
 
-            for (state_machine* sm : sms)
-                if (sm)
-                    sm->set_status_enabled(e); // переделать! каждый автомат запускается своим событием!
+            //for (state_machine* sm : sms)
+            //    if (sm)
+            //        sm->set_status_enabled(e); // переделать! каждый автомат запускается своим событием!
         }
         void set_status_paused()
         {
