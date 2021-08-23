@@ -2,6 +2,7 @@
 #pragma once
 
 #include <vector>
+#include <queue>
 #include <map>
 #include <string>
 #include <iostream>
@@ -43,12 +44,13 @@ namespace rm // rule machine
     using i_rm_event_invoker_t = IRMEventInvoker<rule_machine>;
     using ptr_action_t = void (*)(const event&);
     using ptr_guard_t = bool (*)(const event&);
+    using event_target_t = std::pair <event, state_machine*>; // todo заменить: копирование события на перемещение
 
     enum class status { enabled, disabled, paused };
 
     /// event ///
 
-    class event
+    class event final
     {
     public:
         const id_t id = -1; // идентификатор
@@ -85,7 +87,7 @@ namespace rm // rule machine
             return param;
         }
 
-        virtual ~event() {};
+        ~event() {};
     };
 
     /// end event ///
@@ -638,15 +640,36 @@ namespace rm // rule machine
         public i_rm_event_invoker_t
     {
     private:
+        std::queue<event_target_t> event_queue;
+
         status curr_status = status::disabled;
 
-    private:
         std::vector<state_machine*> sms;
 
     public:
         void add_sm(state_machine* sm)
         {
             sms.push_back(sm);
+        }
+
+        void add_event(event e, state_machine* ptr_sm = nullptr)
+        {
+            event_queue.push(event_target_t{ e, ptr_sm });
+        }
+
+        void check_events()
+        {
+            while (!event_queue.empty())
+            {
+                auto [e, ptr_sm] = event_queue.front();
+                event_queue.pop();
+                if (ptr_sm)
+                    ptr_sm->recv_triggering_event(e);
+                else
+                    for (state_machine* sm : sms)
+                        if (sm)
+                            sm->recv_triggering_event(e);
+            }
         }
 
     public:
