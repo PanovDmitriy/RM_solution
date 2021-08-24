@@ -378,15 +378,15 @@ namespace rm // rule machine
     protected:
         void do_entry_action(const event& ref_e) override
         {
-            //std::cout << "state " << name << " * event [ " << ref_e.name << ", " << std::to_string(ref_e.id) << " ]: entry action" << std::endl;
+            std::cout << "state " << name << " * event [ " << ref_e.name << ", " << std::to_string(ref_e.id) << " ]: entry action" << std::endl;
         }
         void do_exit_action(const event& ref_e) override
         {
-            //std::cout << "state " << name << " * event [ " << ref_e.name << ", " << std::to_string(ref_e.id) << " ]: exit action" << std::endl;
+            std::cout << "state " << name << " * event [ " << ref_e.name << ", " << std::to_string(ref_e.id) << " ]: exit action" << std::endl;
         }
         void do_internal_action(const event& ref_e) override
         {
-            //std::cout << "state " << name << " * event [ " << ref_e.name << ", " << std::to_string(ref_e.id) << " ]: internal action" << std::endl;
+            std::cout << "state " << name << " * event [ " << ref_e.name << ", " << std::to_string(ref_e.id) << " ]: internal action" << std::endl;
         }
 
     public:
@@ -447,7 +447,7 @@ namespace rm // rule machine
         }
 
     public:
-        result_t recv_triggering_event(const event& ref_e)
+        result_t release_event(const event& ref_e)
         {
 
             // return: success - true, error - false
@@ -598,7 +598,7 @@ namespace rm // rule machine
                 current_state_ptr = static_cast<state*>(initial_state_ptr);
                 initial_state_ptr->do_activate(e);
                 curr_status = status::enabled;
-                recv_triggering_event(e);
+                release_event(e);
                 break;
             }
         }
@@ -666,11 +666,11 @@ namespace rm // rule machine
                 auto [e, ptr_sm] = event_queue.front();
                 event_queue.pop();
                 if (ptr_sm)
-                    const_cast<state_machine*>(ptr_sm)->recv_triggering_event(e);
+                    const_cast<state_machine*>(ptr_sm)->release_event(e);
                 else
                     for (state_machine* sm : sms)
                         if (sm)
-                            sm->recv_triggering_event(e);
+                            sm->release_event(e);
             }
         }
 

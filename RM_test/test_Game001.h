@@ -22,11 +22,7 @@ class DOM
 {
 public:
     card_set sc_table;
-
-    // player1
     card_set sc_player1;
-
-    // player2
     card_set sc_player2;
 
     int turn_n = 1;
@@ -42,14 +38,10 @@ public:
 
     void reset()
     {
+        turn_n = 1;
         sc_table.reset();
         sc_player1.clear();
         sc_player2.clear();
-    }
-
-    bool is_all_turned()
-    {
-        return false;// is_player1_turned&& is_player2_turned;
     }
 
     friend class state_turn_player;
@@ -67,14 +59,14 @@ public:
 };
 
 class state_turn_player :
-    public state_test
+    public state
 {
 private:
     DOM& dom;
 
 public:
-    state_turn_player(i_sm_event_invoker_t& invoker_, std::string _name, DOM& dom_) :
-        state_test(invoker_, _name),
+    state_turn_player(i_sm_event_invoker_t& invoker_, DOM& dom_) :
+        state(invoker_),
         dom (dom_)
     {
     }
@@ -82,14 +74,15 @@ public:
 protected:
     void do_entry_action(const event& ref_e) override
     {
-        //std::cout << "state " << name << " * event [ " << ref_e.name << ", " << std::to_string(ref_e.id) << " ]: entry action" << std::endl;
-
-        //вход 
-
         card c1(e_card_mark::Joker);
-        card c2(e_card_mark::Joker);
+        card c2(c1);
         
         //карты от игрока на стол (1 дл€ next_turn, 2 дл€ next_sub_turn),
+        //если нет, сообщить "no_cards",
+        //если есть,
+        //положить на стол,
+        //сообщить "card_on_table"
+
         if (ref_e.id == dom.next_turn_id)
         {
             std::cout << "’од: " << dom.turn_n << std::endl;
@@ -152,13 +145,6 @@ protected:
             std::cout << " осталось: " << dom.sc_player2.get_size() << std::endl;
             c2 = dom.sc_table.get_first_card();
         }
-        //если нет, сообщить "no_cards",
-
-        //если есть,
-
-        //положить на стол,
-        
-        //сообщить "card_on_table"
 
         dom.turn_n++;
 
@@ -167,14 +153,14 @@ protected:
 };
 
 class state_pre_play :
-    public state_test
+    public state
 {
 private:
     DOM& dom;
 
 public:
-    state_pre_play(i_sm_event_invoker_t& invoker_, std::string _name, DOM& dom_) :
-        state_test(invoker_, _name),
+    state_pre_play(i_sm_event_invoker_t& invoker_, DOM& dom_) :
+        state(invoker_),
         dom(dom_)
     {
     }
@@ -182,22 +168,80 @@ public:
 protected:
     void do_entry_action(const event& ref_e) override
     {
-        //std::cout << "state " << name << " * event [ " << ref_e.name << ", " << std::to_string(ref_e.id) << " ]: entry action" << std::endl;
-
-        //вход 
-
         //  раздать карты
-        dom.reset();
-        dom.sc_table.shuffle();
-        dom.sc_table.shuffle();
-        dom.sc_table.shuffle();
-        while (true)
-        {
-            if (!dom.sc_table.move_card_f2f(dom.sc_player1))
-                break;
-            if (!dom.sc_table.move_card_f2f(dom.sc_player2))
-                break;
-        }
+        //dom.reset();
+        //dom.sc_table.shuffle();
+        ////dom.sc_table.shuffle();
+        ////dom.sc_table.shuffle();
+        ////dom.sc_table.shuffle();
+        //while (true)
+        //{
+        //    if (!dom.sc_table.move_card_f2f(dom.sc_player1))
+        //        break;
+        //    if (!dom.sc_table.move_card_f2f(dom.sc_player2))
+        //        break;
+        //}
+
+        dom.sc_table.clear(); 
+        dom.sc_player1.clear();
+        dom.sc_player2.clear();
+
+        dom.sc_player1.add_card(card(e_card_suit::Spade, e_card_num::Q));
+        dom.sc_player1.add_card(card(e_card_suit::Heart, e_card_num::n4));
+        dom.sc_player1.add_card(card(e_card_suit::Heart, e_card_num::n9));
+        dom.sc_player1.add_card(card(e_card_suit::Heart, e_card_num::Q));
+        dom.sc_player1.add_card(card(e_card_suit::Club, e_card_num::K));
+        dom.sc_player1.add_card(card(e_card_suit::Club, e_card_num::J));
+        dom.sc_player1.add_card(card(e_card_suit::Spade, e_card_num::n2));
+        dom.sc_player1.add_card(card(e_card_suit::Club, e_card_num::n8));
+        dom.sc_player1.add_card(card(e_card_suit::Club, e_card_num::n9));
+        dom.sc_player1.add_card(card(e_card_suit::Diamond, e_card_num::n4));
+        dom.sc_player1.add_card(card(e_card_suit::Heart, e_card_num::n6));
+        dom.sc_player1.add_card(card(e_card_suit::Club, e_card_num::n10));
+        dom.sc_player1.add_card(card(e_card_suit::Club, e_card_num::A));
+        dom.sc_player1.add_card(card(e_card_suit::Spade, e_card_num::n8));
+        dom.sc_player1.add_card(card(e_card_suit::Club, e_card_num::n4));
+        dom.sc_player1.add_card(card(e_card_suit::Diamond, e_card_num::J));
+        dom.sc_player1.add_card(card(e_card_suit::Heart, e_card_num::n7));
+        dom.sc_player1.add_card(card(e_card_suit::Diamond, e_card_num::A));
+        dom.sc_player1.add_card(card(e_card_suit::Heart, e_card_num::n3));
+        dom.sc_player1.add_card(card(e_card_suit::Club, e_card_num::n3));
+        dom.sc_player1.add_card(card(e_card_suit::Diamond, e_card_num::K));
+        dom.sc_player1.add_card(card(e_card_suit::Spade, e_card_num::n5));
+        dom.sc_player1.add_card(card(e_card_suit::Spade, e_card_num::J));
+        dom.sc_player1.add_card(card(e_card_suit::Spade, e_card_num::K));
+        dom.sc_player1.add_card(card(e_card_suit::Spade, e_card_num::n10));
+        dom.sc_player1.add_card(card(e_card_suit::Spade, e_card_num::n3));
+
+        dom.sc_player2.add_card(card(e_card_suit::Club, e_card_num::Q));
+        dom.sc_player2.add_card(card(e_card_suit::Spade, e_card_num::A));
+        dom.sc_player2.add_card(card(e_card_suit::Diamond, e_card_num::n7));
+        dom.sc_player2.add_card(card(e_card_suit::Spade, e_card_num::n4));
+        dom.sc_player2.add_card(card(e_card_suit::Club, e_card_num::n6));
+        dom.sc_player2.add_card(card(e_card_suit::Spade, e_card_num::n9));
+        dom.sc_player2.add_card(card(e_card_suit::Heart, e_card_num::K));
+        dom.sc_player2.add_card(card(e_card_suit::Heart, e_card_num::n2));
+        dom.sc_player2.add_card(card(e_card_suit::Heart, e_card_num::n5));
+        dom.sc_player2.add_card(card(e_card_suit::Diamond, e_card_num::n10));
+        dom.sc_player2.add_card(card(e_card_suit::Diamond, e_card_num::n3));
+        dom.sc_player2.add_card(card(e_card_suit::Diamond, e_card_num::Q));
+        dom.sc_player2.add_card(card(e_card_suit::Diamond, e_card_num::n9));
+        dom.sc_player2.add_card(card(e_card_suit::Club, e_card_num::n5));
+        dom.sc_player2.add_card(card(e_card_suit::Club, e_card_num::n7));
+        dom.sc_player2.add_card(card(e_card_suit::Heart, e_card_num::n10));
+        dom.sc_player2.add_card(card(e_card_suit::Heart, e_card_num::J));
+        dom.sc_player2.add_card(card(e_card_suit::Club, e_card_num::n2));
+        dom.sc_player2.add_card(card(e_card_suit::Spade, e_card_num::n6));
+        dom.sc_player2.add_card(card(e_card_suit::Spade, e_card_num::n7));
+        dom.sc_player2.add_card(card(e_card_suit::Diamond, e_card_num::n2));
+        dom.sc_player2.add_card(card(e_card_suit::Diamond, e_card_num::n6));
+        dom.sc_player2.add_card(card(e_card_suit::Heart, e_card_num::n8));
+        dom.sc_player2.add_card(card(e_card_suit::Diamond, e_card_num::n5));
+        dom.sc_player2.add_card(card(e_card_suit::Diamond, e_card_num::n8));
+        dom.sc_player2.add_card(card(e_card_suit::Heart, e_card_num::A));
+
+        dom.sc_player1.show("player 1 cards");
+        dom.sc_player2.show("player 2 cards");
 
         std::cout << " арты розданы: " << std::endl;
         std::cout << "Player1 карты: " << dom.sc_player1.get_size() << std::endl;
@@ -209,14 +253,14 @@ protected:
 };
 
 class state_turn_play :
-    public state_test
+    public state
 {
 private:
     DOM& dom;
 
 public:
-    state_turn_play(i_sm_event_invoker_t& invoker_, std::string _name, DOM& dom_) :
-        state_test(invoker_, _name),
+    state_turn_play(i_sm_event_invoker_t& invoker_, DOM& dom_) :
+        state(invoker_),
         dom(dom_)
     {
     }
@@ -224,10 +268,6 @@ public:
 protected:
     void do_entry_action(const event& ref_e) override
     {
-        //std::cout << "state " << name << " * event [ " << ref_e.name << ", " << std::to_string(ref_e.id) << " ]: entry action" << std::endl;
-
-        //вход 
-
         if (ref_e.id == dom.card_on_table_id)
         {
             //сравнить

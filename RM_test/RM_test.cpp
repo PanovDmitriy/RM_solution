@@ -8,6 +8,7 @@
 #include <list>
 #include <vector>
 #include <algorithm>
+#include <chrono>
 
 #include "test_Game001.h"
 
@@ -55,8 +56,8 @@ int main()
     // -------------------------------------------------------- //
 
     initial_state st_init_players(sm_players);
-    state_test st_await_player_starts(sm_players, "st_await_player_starts");
-    state_turn_player st_turn_players(sm_players, "st_turn_players", dom);
+    state st_await_player_starts(sm_players);
+    state_turn_player st_turn_players(sm_players, dom);
 
     sm_players.add_event_state_state_transition(dom.init_players_id, &st_init_players, &st_await_player_starts);
     sm_players.add_event_state_state_transition(dom.next_turn_id, &st_await_player_starts, &st_turn_players);
@@ -67,9 +68,9 @@ int main()
 
     initial_state st_init_play(sm_play);
     final_state st_final_play(sm_play);
-    state_test st_await_play_start(sm_play, "st_await_play_start");
-    state_pre_play st_preplay(sm_play, "st_preplay", dom);
-    state_turn_play st_turn_play(sm_play, "st_turn_play", dom);
+    state st_await_play_start(sm_play);
+    state_pre_play st_preplay(sm_play, dom);
+    state_turn_play st_turn_play(sm_play, dom);
 
     sm_play.add_event_state_state_transition(dom.init_play_id, &st_init_play, &st_await_play_start);
     sm_play.add_event_state_state_transition(dom.start_play_id, &st_await_play_start, &st_preplay);
@@ -84,10 +85,15 @@ int main()
     rm.set_status_enabled();
     rm.invoke(event (dom.start_play_id, "start_play"));
 
+    auto begin = std::chrono::steady_clock::now();
+
     while (sm_players.get_status() == status::enabled && sm_play.get_status() == status::enabled)
-    {
         rm.release_events();
-    }
+
+    auto end = std::chrono::steady_clock::now();
+    auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
+
+    std::cout << "\n24.08.2021 time: 16000\n   current time: " << elapsed_ms.count() << "\n";
 
     // -------------------------------------------------------- //
     // -------------------------------------------------------- //

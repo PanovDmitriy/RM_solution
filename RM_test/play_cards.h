@@ -230,6 +230,11 @@ public:
         return false;
     }
 
+    void add_card(card&& c)
+    {
+        cards.push_back(c);
+    }
+
     bool move_card_f2b(card_set& to_card_set) // first to back
     {
         if (type == to_card_set.type)
