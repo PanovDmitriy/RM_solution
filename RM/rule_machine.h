@@ -32,9 +32,9 @@ namespace rm // rule machine
     template <class TRuleMachine> // CRPT interface for event rise callback
     struct IRMEventInvoker
     {
-        void invoke(const event& ref_e)
+        void invoke(const event& ref_e, const state_machine* ptr_sm = nullptr)
         {
-            static_cast<TRuleMachine*>(this)->invoke(ref_e);
+            static_cast<TRuleMachine*>(this)->invoke(ref_e, ptr_sm);
         }
     };
 
@@ -44,7 +44,7 @@ namespace rm // rule machine
     using i_rm_event_invoker_t = IRMEventInvoker<rule_machine>;
     using ptr_action_t = void (*)(const event&);
     using ptr_guard_t = bool (*)(const event&);
-    using event_target_t = std::pair <event, state_machine*>; // todo заменить: копирование события на перемещение
+    using event_target_t = std::pair <const event, const state_machine*>; // todo заменить: копирование события на перемещение
 
     enum class status { enabled, disabled, paused };
 
@@ -64,7 +64,12 @@ namespace rm // rule machine
         event() = delete;
 
         event(const event& e)
-            : id(e.id), name(e.name)
+            : id(e.id), name(e.name), param(e.param)
+        {
+        }
+
+        event(id_t id_, std::string name_, std::any param_)
+            : id(id_), name(name_), param(param_)
         {
         }
 
@@ -432,11 +437,13 @@ namespace rm // rule machine
     public:
         void invoke(const event& ref_e, bool is_local)
         {
-            if (is_local)
-                recv_triggering_event(ref_e);
-            else
-                if (global_invoker)
+            if (global_invoker)
+            {
+                if (is_local)
+                    global_invoker->invoke(ref_e, this);
+                else
                     global_invoker->invoke(ref_e);
+            }
         }
 
     public:
@@ -652,19 +659,14 @@ namespace rm // rule machine
             sms.push_back(sm);
         }
 
-        void add_event(event e, state_machine* ptr_sm = nullptr)
-        {
-            event_queue.push(event_target_t{ e, ptr_sm });
-        }
-
-        void check_events()
+        void release_events()
         {
             while (!event_queue.empty())
             {
                 auto [e, ptr_sm] = event_queue.front();
                 event_queue.pop();
                 if (ptr_sm)
-                    ptr_sm->recv_triggering_event(e);
+                    const_cast<state_machine*>(ptr_sm)->recv_triggering_event(e);
                 else
                     for (state_machine* sm : sms)
                         if (sm)
@@ -705,13 +707,9 @@ namespace rm // rule machine
         /// - ///
 
     public:
-        void invoke(const event& ref_e)
+        void invoke(const event& ref_e, const state_machine* ptr_sm = nullptr)
         {
-            for (state_machine* sm : sms)
-            {
-                if (sm)
-                    sm->recv_triggering_event(ref_e);
-            }
+            event_queue.push(event_target_t{ ref_e, ptr_sm });
         }
 
         void clear()
