@@ -230,12 +230,12 @@ public:
         return false;
     }
 
-    void add_card(card&& c)
+    void add_card_back(card&& c)
     {
         cards.push_back(c);
     }
 
-    bool move_card_f2b(card_set& to_card_set) // first to back
+    bool move_card_first2back(card_set& to_card_set) // first to back
     {
         if (type == to_card_set.type)
         {
@@ -249,7 +249,7 @@ public:
         return false;
     }
 
-    bool move_all_cards_f2b(card_set& to_card_set) // first to back // переделать в инт - кол-во переданных карт
+    bool move_all_cards_first2back(card_set& to_card_set) // first to back // переделать в инт - кол-во переданных карт
     {
         if (type == to_card_set.type)
         {
@@ -263,7 +263,7 @@ public:
         return false;
     }
 
-    bool move_card_f2f(card_set& to_card_set) // first to first
+    bool move_card_first2first(card_set& to_card_set) // first to first
     {
         if (type == to_card_set.type)
         {
@@ -282,14 +282,14 @@ public:
         return cards.front();
     }
 
-    card move_card_f() // first
+    card move_card_first() // first
     {
         card c = cards.front();
         cards.pop_front();
         return c;
     }
 
-    card move_card_b() // back
+    card move_card_back() // back
     {
         card c = cards.back();
         cards.pop_back();

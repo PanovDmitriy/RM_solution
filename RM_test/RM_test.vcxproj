@@ -148,6 +148,7 @@
   <ItemGroup>
     <ClInclude Include="play_cards.h" />
     <ClInclude Include="test_Game001.h" />
+    <ClInclude Include="test_SM.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Пьяница.vsdx" />
