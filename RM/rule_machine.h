@@ -20,28 +20,29 @@ namespace rm // rule machine
     class state_machine;
     class rule_machine;
 
+    using result_t = std::tuple <bool, std::string>;
+
     template <class TStateMachine> // CRPT interface for event rise callback
-    struct ISMEventInvoker
+    struct ISMEventRiser
     {
-        void invoke(const event& ref_e, bool is_local)
+        result_t rise_event(const event& ref_e, bool is_local = false)
         {
-            static_cast<TStateMachine*>(this)->invoke(ref_e, is_local);
+            return static_cast<TStateMachine*>(this)->rise_event(ref_e, is_local);
         }
     };
 
     template <class TRuleMachine> // CRPT interface for event rise callback
-    struct IRMEventInvoker
+    struct IRMEventRiser
     {
-        void invoke(const event& ref_e, const state_machine* ptr_sm = nullptr)
+        result_t rise_event(const event& ref_e, const state_machine* ptr_sm = nullptr)
         {
-            static_cast<TRuleMachine*>(this)->invoke(ref_e, ptr_sm);
+            return static_cast<TRuleMachine*>(this)->rise_event(ref_e, ptr_sm);
         }
     };
 
     using id_t = int;
-    using result_t = std::tuple <bool, std::string>;
-    using i_sm_event_invoker_t = ISMEventInvoker<state_machine>;
-    using i_rm_event_invoker_t = IRMEventInvoker<rule_machine>;
+    using i_sm_event_riser_t = ISMEventRiser<state_machine>;
+    using i_rm_event_riser_t = IRMEventRiser<rule_machine>;
     using ptr_action_t = void (*)(const event&);
     using ptr_guard_t = bool (*)(const event&);
     using event_target_t = std::pair <const event, const state_machine*>; // todo заменить: копирование события на перемещение
@@ -56,11 +57,8 @@ namespace rm // rule machine
         const id_t id = -1; // идентификатор
         const std::string name; // имя, не важное
         const std::time_t time = std::time(nullptr); // время создания события
+        const std::any param;
 
-    protected:
-        std::any param;
-
-    public:
         event() = delete;
 
         event(const event& e)
@@ -82,14 +80,10 @@ namespace rm // rule machine
         {
             return id == ref_e.id;
         }
+
         bool operator != (const event& ref_e)
         {
             return !(id == ref_e.id);
-        }
-
-        std::any get_param()
-        {
-            return param;
         }
 
         ~event() {};
@@ -99,19 +93,8 @@ namespace rm // rule machine
 
     /// transition ///
 
-    class transition
+    struct transition
     {
-    protected:
-        i_sm_event_invoker_t& invoker;
-
-    public:
-        transition() = delete;
-
-        transition(i_sm_event_invoker_t& invoker_) :
-            invoker(invoker_)
-        {
-        }
-
         virtual void do_action(const event&)
         {
         }
@@ -132,12 +115,15 @@ namespace rm // rule machine
         : public transition
     {
     protected:
+        i_sm_event_riser_t& riser;
+
+    protected:
         std::vector <ptr_action_t> actions;
         std::vector <ptr_guard_t> guards;
 
     public:
-        transition_vecs(i_sm_event_invoker_t& invoker_) :
-            transition(invoker_)
+        transition_vecs(i_sm_event_riser_t& riser_) :
+            riser(riser_)
         {
         }
 
@@ -190,8 +176,8 @@ namespace rm // rule machine
     public:
         transition_test() = delete;
 
-        transition_test(i_sm_event_invoker_t& invoker_, std::string name_) :
-            transition_vecs (invoker_),
+        transition_test(i_sm_event_riser_t& riser_, std::string name_) :
+            transition_vecs (riser_),
             name(name_)
         {
         }
@@ -216,9 +202,6 @@ namespace rm // rule machine
     class state
     {
     protected:
-        i_sm_event_invoker_t& invoker;
-
-    protected:
         virtual void do_entry_action(const event&)
         {
         }
@@ -226,14 +209,6 @@ namespace rm // rule machine
         {
         }
         virtual void do_internal_action(const event&)
-        {
-        }
-
-    public:
-        state() = delete;
-
-        state(i_sm_event_invoker_t& invoker_) :
-            invoker(invoker_)
         {
         }
 
@@ -265,8 +240,7 @@ namespace rm // rule machine
         public state
     {
     public:
-        initial_state(i_sm_event_invoker_t& invoker_) :
-            state(invoker_)
+        initial_state()
         {
         }
 
@@ -288,8 +262,7 @@ namespace rm // rule machine
         public state
     {
     public:
-        final_state(i_sm_event_invoker_t& invoker_) :
-            state(invoker_)
+        final_state()
         {
         }
 
@@ -315,12 +288,15 @@ namespace rm // rule machine
         : public state
     {
     protected:
+        i_sm_event_riser_t& riser;
+
+    protected:
         std::vector <ptr_action_t> entry_actions;
         std::vector <ptr_action_t> exit_actions;
 
     public:
-        state_vecs(i_sm_event_invoker_t& invoker_) :
-            state(invoker_)
+        state_vecs(i_sm_event_riser_t& riser_) :
+            riser(riser_)
         {
         }
 
@@ -369,8 +345,8 @@ namespace rm // rule machine
     public:
         state_test() = delete;
 
-        state_test(i_sm_event_invoker_t& invoker_, std::string _name) :
-            state_vecs (invoker_),
+        state_test(i_sm_event_riser_t& riser_, std::string _name) :
+            state_vecs (riser_),
             name(_name)
         {
         }
@@ -403,18 +379,11 @@ namespace rm // rule machine
     /// state_machine
 
     class state_machine :
-        public i_sm_event_invoker_t
+        public i_sm_event_riser_t
     {
-        using msg = sgt_messages <base_messages>;
-
-    public:
-        //const id_t id;
-
-        state_machine() = delete;
-
-        state_machine(i_rm_event_invoker_t* global_invoker_)
-            : global_invoker(global_invoker_)
+        inline auto msg()
         {
+            return sgt_messages <base_messages>::get_instance().msgs;
         }
 
     private:
@@ -426,7 +395,7 @@ namespace rm // rule machine
 
         std::map<state* /*source state*/, std::multimap<id_t /*event id*/, transit_to_state>> state_transitions_tab;
 
-        i_rm_event_invoker_t* global_invoker = nullptr;
+        i_rm_event_riser_t* rm_riser = nullptr;
 
         state* current_state_ptr = nullptr;
         initial_state* initial_state_ptr = nullptr;
@@ -435,36 +404,46 @@ namespace rm // rule machine
         status curr_status = status::disabled;
 
     public:
-        void invoke(const event& ref_e, bool is_local)
+        //const id_t id;
+
+        state_machine() = delete;
+
+        state_machine(i_rm_event_riser_t* rm_riser_)
+            : rm_riser(rm_riser_)
         {
-            if (global_invoker)
-            {
-                if (is_local)
-                    global_invoker->invoke(ref_e, this);
-                else
-                    global_invoker->invoke(ref_e);
-            }
         }
 
     public:
-        result_t release_event(const event& ref_e)
+        result_t rise_event(const event& ref_e, bool is_local) // инициировать событие
         {
+            if (rm_riser)
+            {
+                if (is_local)
+                    return rm_riser->rise_event(ref_e, this);
+                else
+                    return rm_riser->rise_event(ref_e);
+            }
 
+            return { false, msg().false_riser_is_null };
+        }
+
+    public:
+        result_t release_event(const event& ref_e) // реализовать событие
+        {
             // return: success - true, error - false
 
-            /// pre conditions ///
-
+            // + pre conditions
             if (curr_status != status::enabled)
-                return { true, msg::get_instance().msgs.true_nenabled };
+                return { true, msg().true_nenabled };
 
             // test curr state
             if (!current_state_ptr)
-                return { false, msg::get_instance().msgs.false_curr_state_null };
+                return { false, msg().false_curr_state_null };
 
             // find curr state in tab
             auto it_curr_state_in_tab = state_transitions_tab.find(current_state_ptr);
             if (it_curr_state_in_tab == state_transitions_tab.end())
-                return { false, msg::get_instance().msgs.false_curr_state_nfaund };
+                return { false, msg().false_curr_state_nfaund };
 
             // find links from curr state to new state by event in tab
             auto& mmap_ref = it_curr_state_in_tab->second; // mmap_ref - std::multimap<id_t /*event id*/, transit_to_state>
@@ -489,19 +468,18 @@ namespace rm // rule machine
                     }
             }
             if (!ptr_transit_to_state)
-                return { true, msg::get_instance().msgs.true_reject };
+                return { true, msg().true_reject };
 
             if (!(ptr_transit_to_state->ptr_target_state))
-                return { false, msg::get_instance().msgs.false_target_state_null };
-
-            /// - ///
+                return { false, msg().false_target_state_null };
+            // - pre conditions
 
             /// Ok! change state now! ///
 
             // do unactivate source (current) state
             current_state_ptr->do_unactivate(ref_e);
 
-            // do link actions
+            // do transition actions
             if (ptr_transit_to_state->ptr_transition)
                 ptr_transit_to_state->ptr_transition->do_action(ref_e);
 
@@ -511,33 +489,33 @@ namespace rm // rule machine
             if (current_state_ptr == final_state_ptr)
             {
                 set_status_disabled();
-                return { true, msg::get_instance().msgs.true_curr_state_final };
+                return { true, msg().true_curr_state_final };
             }
 
             // do activate target (current) state
             current_state_ptr->do_activate(ref_e);
 
-            return { true, msg::get_instance().msgs.true_ok };
+            return { true, msg().true_ok };
         }
 
     public:
         result_t add_event_state_state_transition(id_t e_id, state* s_source, state* s_target, transition* t = nullptr)
         {
             if (!s_source || !s_target)
-                return { false, msg::get_instance().msgs.param_state_is_null };
+                return { false, msg().param_state_is_null };
 
             transit_to_state ls;
             ls.ptr_transition = t;
             ls.ptr_target_state = s_target;
             state_transitions_tab[s_source].insert(std::pair<id_t /*event id*/, transit_to_state>(e_id, ls));
 
-            return { true, msg::get_instance().msgs.true_ok };
+            return { true, msg().true_ok };
         }
 
         result_t add_event_state_state_transition(id_t e_id, initial_state* s_source, state* s_target, transition* t = nullptr)
         {
             if (initial_state_ptr && initial_state_ptr != s_source)
-                return { false, msg::get_instance().msgs.init_state_is_already_set }; // initial state must be single!
+                return { false, msg().init_state_is_already_set }; // initial state must be single!
 
             result_t rez = add_event_state_state_transition(e_id, static_cast<state*>(s_source), s_target, t);
             if (std::get<0>(rez))
@@ -549,7 +527,7 @@ namespace rm // rule machine
         result_t add_event_state_state_transition(id_t e_id, state* s_source, final_state* s_target, transition* t = nullptr)
         {
             if (final_state_ptr && final_state_ptr != s_target) // не обязательное условие, чисто для симметрии с initial state
-                return { false, msg::get_instance().msgs.final_state_is_already_set }; // final state must be single! но это не точно :)
+                return { false, msg().final_state_is_already_set }; // final state must be single! но это не точно :)
 
             result_t rez = add_event_state_state_transition(e_id, s_source, static_cast<state*>(s_target), t);
             if (std::get<0>(rez))
@@ -579,7 +557,7 @@ namespace rm // rule machine
             }
         }
 
-        /// control methods sm ///
+        // + control methods sm
         status get_status()
         {
             return curr_status;
@@ -630,8 +608,7 @@ namespace rm // rule machine
                 break;
             }
         }
-
-        /// - ///
+        // - control methods sm
 
         void clear()
         {
@@ -644,22 +621,25 @@ namespace rm // rule machine
     /// rule machine
 
     class rule_machine :
-        public i_rm_event_invoker_t
+        public i_rm_event_riser_t
     {
-    private:
-        std::queue<event_target_t> event_queue;
-
-        status curr_status = status::disabled;
-
-        std::vector<state_machine*> sms;
-
-    public:
-        void add_sm(state_machine* sm)
+        inline auto msg()
         {
-            sms.push_back(sm);
+            return sgt_messages <base_messages>::get_instance().msgs;
         }
 
-        void release_events()
+    private:
+        std::queue<event_target_t> event_queue;
+        std::vector<state_machine*> state_machines;
+        status curr_status = status::disabled;
+
+    public:
+        void add_sm(state_machine* ptr_sm)
+        {
+            state_machines.push_back(ptr_sm);
+        }
+
+        result_t release_events()
         {
             while (!event_queue.empty())
             {
@@ -668,14 +648,16 @@ namespace rm // rule machine
                 if (ptr_sm)
                     const_cast<state_machine*>(ptr_sm)->release_event(e);
                 else
-                    for (state_machine* sm : sms)
+                    for (state_machine* sm : state_machines)
                         if (sm)
                             sm->release_event(e);
             }
+
+            return { true, msg().true_ok };
         }
 
     public:
-        /// control methods sm ///
+        // + control methods sm
         status get_status()
         {
             return curr_status;
@@ -692,7 +674,7 @@ namespace rm // rule machine
         {
             curr_status = status::paused;
 
-            for (state_machine* sm : sms)
+            for (state_machine* sm : state_machines)
                 if (sm)
                     sm->set_status_paused();
         }
@@ -700,29 +682,31 @@ namespace rm // rule machine
         {
             curr_status = status::disabled;
 
-            for (state_machine* sm : sms)
+            for (state_machine* sm : state_machines)
                 if (sm)
                     sm->set_status_disabled();
         }
-        /// - ///
+        // - control methods sm
 
     public:
-        void invoke(const event& ref_e, const state_machine* ptr_sm = nullptr)
+        result_t rise_event(const event& ref_e, const state_machine* ptr_sm = nullptr)
         {
             event_queue.push(event_target_t{ ref_e, ptr_sm });
+
+            return { true, msg().true_ok };
         }
 
         void clear()
         {
             set_status_disabled();
 
-            for (state_machine* sm : sms)
+            for (state_machine* ptr_sm : state_machines)
             {
-                if (sm)
-                    sm->clear();
+                if (ptr_sm)
+                    ptr_sm->clear();
             }
 
-            sms.clear();
+            state_machines.clear();
         }
     };
 }

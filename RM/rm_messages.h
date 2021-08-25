@@ -16,6 +16,7 @@ namespace rm // rule machine
         const std::string param_state_is_null;
         const std::string init_state_is_already_set;
         const std::string final_state_is_already_set;
+        const std::string false_riser_is_null;
 
         base_messages& operator=(const base_messages& m)
         {
@@ -29,6 +30,7 @@ namespace rm // rule machine
             const_cast<std::string&>(param_state_is_null) = m.param_state_is_null;
             const_cast<std::string&>(init_state_is_already_set) = m.init_state_is_already_set;
             const_cast<std::string&>(final_state_is_already_set) = m.final_state_is_already_set;
+            const_cast<std::string&>(false_riser_is_null) = m.false_riser_is_null;
 
             return *this;
         }
@@ -49,7 +51,8 @@ namespace rm // rule machine
             "Ok",
             "Parameter state ptr is null",
             "Initial state is already set",
-            "Final state is already set"
+            "Final state is already set",
+            "Riser is null"
         }
         {
         }
@@ -69,8 +72,9 @@ namespace rm // rule machine
             "Текущее состояние Final. Автомат выключен",
             "Ok"
             "Параметр state = NULL",
-            "Initial state is already set",
-            "Final state is already set"
+            "Начальное состояние уже задано",
+            "Конечное состояние уже задано",
+            "Инициатор события не задан"
         }
         {
         }

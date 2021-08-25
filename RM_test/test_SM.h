@@ -49,8 +49,8 @@ void main_SM()
     state_test s1(sm, "state1");
     state_test s2(sm, "state2");
     state_test s3(sm, "state3");
-    initial_state si (sm);
-    //final_state sf (sm);
+    initial_state si;
+    //final_state sf;
 
     transition_test tinit1(sm, "trans init->1");
     transition_test tinit2(sm, "trans init->2");
