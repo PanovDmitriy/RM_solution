@@ -59,16 +59,17 @@ namespace rm // rule machine
         const std::any param;
 
         event() = delete;
-        event(id_t id_) : id(id_) {}
-        event(id_t id_, std::any param_) : id(id_), param(param_) {}
-        event(const event& e) : id(e.id), param(e.param), time(e.time) {}
-        event(const event&& e) noexcept : id(e.id), param(e.param), time(e.time) {}
+        event(id_t id_) : id(id_) { std::cout << "event CONSTR (id=" << id << ")\n"; }
+        event(id_t id_, std::any param_) : id(id_), param(std::move(param_)) { std::cout << "event CONSTR (id=" << id << ", param)\n"; }
+        event(const event& e) = delete; // : id(e.id), param(e.param), time(e.time) { std::cout << "event CONSTR (&)\n"; }
+        event(const event&& e) noexcept : id(e.id), param(e.param), time(e.time) { std::cout << "event CONSTR (&& id=" << id << ")\n"; }
 
-        void operator= (event&& rv_e) noexcept
+        void operator= (event&& rv_e) = delete;/* noexcept
         {
             const_cast<id_t&>(id) = rv_e.id;
             const_cast<std::any&>(param) = rv_e.param;
-        }
+            const_cast<std::any&>(rv_e.param) = 0;
+        }*/
         
         bool operator== (const event& ref_e)
         {
@@ -80,7 +81,7 @@ namespace rm // rule machine
             return !(id == ref_e.id);
         }
 
-        ~event() {};
+        ~event() { std::cout << "event DESTR\n"; };
     };
 
     /// end event ///

@@ -11,6 +11,25 @@ class state_turn_player;
 class state_pre_play;
 class state_turn_play;
 
+class test_param
+{
+public:
+    test_param()
+    {
+        std::cout << "test_param CONSTR\n";
+        double z = 1.1;
+        for (double i = 1.1; i < 1000.0; i += 1.1)
+        {
+            z = z * z / i + z / i + i;
+        }
+    }
+
+    ~test_param()
+    {
+        std::cout << "test_param DESTR\n";
+    }
+
+};
 
 class DOM
 {
@@ -289,7 +308,7 @@ protected:
                 std::cout << dom.sc_table.get_size() << " карты уходят к Player2" << std::endl;
                 dom.sc_table.move_all_cards_first2back(dom.sc_player2);
                 std::cout << "Карт: " << dom.sc_player1.get_size() << " + " << dom.sc_player2.get_size() << " + стол: " << dom.sc_table.get_size() << std::endl;
-                riser.rise_event(event (dom.next_turn_id));
+                riser.rise_event(event (dom.next_turn_id, test_param()));
             }
             else if (c2 < c1)
             {
@@ -297,7 +316,7 @@ protected:
                 std::cout << dom.sc_table.get_size () << " карты уходят к Player1" << std::endl;
                 dom.sc_table.move_all_cards_first2back(dom.sc_player1);
                 std::cout << "Карт: " << dom.sc_player1.get_size() << " + " << dom.sc_player2.get_size() << " + стол: " << dom.sc_table.get_size() << std::endl;
-                riser.rise_event(event(dom.next_turn_id));
+                riser.rise_event(event(dom.next_turn_id, test_param ()));
             }
             else if (c1 == c2)
             {

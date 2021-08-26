@@ -321,7 +321,7 @@ public:
 
     int get_size()
     {
-        return cards.size();
+        return int (cards.size());
     }
 
     void show(std::string name)
