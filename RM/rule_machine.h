@@ -20,9 +20,13 @@ namespace rm // rule machine
     class state_machine;
     class rule_machine;
 
+    using id_t = int;
     using result_t = std::tuple <bool, std::string>;
+    using ptr_action_t = void (*)(const event&);
+    using ptr_guard_t = bool (*)(const event&);
+    using event_target_t = std::pair <const event, const state_machine*>;
 
-    template <class TStateMachine> // CRPT interface for event rise callback
+    template <class TStateMachine> // CRPT interface for event rise event callback
     struct ISMEventRiser
     {
         result_t rise_event(const event& ref_e, bool is_local = false)
@@ -31,7 +35,7 @@ namespace rm // rule machine
         }
     };
 
-    template <class TRuleMachine> // CRPT interface for event rise callback
+    template <class TRuleMachine> // CRPT interface for event rise event callback
     struct IRMEventRiser
     {
         result_t rise_event(const event& ref_e, const state_machine* ptr_sm = nullptr)
@@ -40,12 +44,8 @@ namespace rm // rule machine
         }
     };
 
-    using id_t = int;
     using i_sm_event_riser_t = ISMEventRiser<state_machine>;
     using i_rm_event_riser_t = IRMEventRiser<rule_machine>;
-    using ptr_action_t = void (*)(const event&);
-    using ptr_guard_t = bool (*)(const event&);
-    using event_target_t = std::pair <const event, const state_machine*>; // todo заменить: копирование события на перемещение
 
     enum class status { enabled, disabled, paused };
 
@@ -55,28 +55,22 @@ namespace rm // rule machine
     {
     public:
         const id_t id = -1; // идентификатор
-        const std::string name; // имя, не важное
         const std::time_t time = std::time(nullptr); // время создания события
         const std::any param;
 
         event() = delete;
+        event(id_t id_) : id(id_) {}
+        event(id_t id_, std::any param_) : id(id_), param(param_) {}
+        event(const event& e) : id(e.id), param(e.param), time(e.time) {}
+        event(const event&& e) noexcept : id(e.id), param(e.param), time(e.time) {}
 
-        event(const event& e)
-            : id(e.id), name(e.name), param(e.param)
+        void operator= (event&& rv_e) noexcept
         {
+            const_cast<id_t&>(id) = rv_e.id;
+            const_cast<std::any&>(param) = rv_e.param;
         }
-
-        event(id_t id_, std::string name_, std::any param_)
-            : id(id_), name(name_), param(param_)
-        {
-        }
-
-        event(id_t id_, std::string name_)
-            : id(id_), name(name_)
-        {
-        }
-
-        bool operator == (const event& ref_e)
+        
+        bool operator== (const event& ref_e)
         {
             return id == ref_e.id;
         }
@@ -107,9 +101,9 @@ namespace rm // rule machine
         virtual ~transition() {}
     };
 
-    /// end link ///
+    /// end transition ///
 
-    /// link_vecs ///
+    /// transition_vecs ///
 
     class transition_vecs
         : public transition
@@ -184,12 +178,12 @@ namespace rm // rule machine
 
         void do_action(const event& ref_e) override
         {
-            std::cout << "link " << name << " * event [ " << ref_e.name << ", " << std::to_string(ref_e.id) << " ]: action" << std::endl;
+            std::cout << "link " << name << " * event [ " << ", " << std::to_string(ref_e.id) << " ]: action" << std::endl;
         }
 
         bool is_guard_condition(const event& ref_e) override
         {
-            std::cout << "link " << name << " * event [ " << ref_e.name << ", " << std::to_string(ref_e.id) << " ]: guard_condition: true" << std::endl;
+            std::cout << "link " << name << " * event [ " << ", " << std::to_string(ref_e.id) << " ]: guard_condition: true" << std::endl;
 
             return true;
         }
@@ -354,15 +348,15 @@ namespace rm // rule machine
     protected:
         void do_entry_action(const event& ref_e) override
         {
-            std::cout << "state " << name << " * event [ " << ref_e.name << ", " << std::to_string(ref_e.id) << " ]: entry action" << std::endl;
+            std::cout << "state " << name << " * event [ " << ", " << std::to_string(ref_e.id) << " ]: entry action" << std::endl;
         }
         void do_exit_action(const event& ref_e) override
         {
-            std::cout << "state " << name << " * event [ " << ref_e.name << ", " << std::to_string(ref_e.id) << " ]: exit action" << std::endl;
+            std::cout << "state " << name << " * event [ " << ", " << std::to_string(ref_e.id) << " ]: exit action" << std::endl;
         }
         void do_internal_action(const event& ref_e) override
         {
-            std::cout << "state " << name << " * event [ " << ref_e.name << ", " << std::to_string(ref_e.id) << " ]: internal action" << std::endl;
+            std::cout << "state " << name << " * event [ " << ", " << std::to_string(ref_e.id) << " ]: internal action" << std::endl;
         }
 
     public:
@@ -419,7 +413,7 @@ namespace rm // rule machine
             if (rm_riser)
             {
                 if (is_local)
-                    return rm_riser->rise_event(ref_e, this);
+                    return rm_riser->rise_event(ref_e, this); // что б избежать рекурсии, отправить в общую очередь, а не вызывать release_event
                 else
                     return rm_riser->rise_event(ref_e);
             }
@@ -643,14 +637,15 @@ namespace rm // rule machine
         {
             while (!event_queue.empty())
             {
-                auto [e, ptr_sm] = event_queue.front();
-                event_queue.pop();
+                auto& [e, ptr_sm] = event_queue.front();
                 if (ptr_sm)
                     const_cast<state_machine*>(ptr_sm)->release_event(e);
                 else
                     for (state_machine* sm : state_machines)
                         if (sm)
                             sm->release_event(e);
+
+                event_queue.pop();
             }
 
             return { true, msg().true_ok };
@@ -691,7 +686,7 @@ namespace rm // rule machine
     public:
         result_t rise_event(const event& ref_e, const state_machine* ptr_sm = nullptr)
         {
-            event_queue.push(event_target_t{ ref_e, ptr_sm });
+            event_queue.push(std::move(event_target_t{ std::move(const_cast<event&>(ref_e)), ptr_sm }));
 
             return { true, msg().true_ok };
         }

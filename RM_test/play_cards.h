@@ -46,7 +46,7 @@ enum class e_card_set_type
     t36
 };
 
-struct card_name
+struct card_name // f() list for std::variant + std::visit
 {
     std::string operator()(const s_card_suitnum& sm)
     {
@@ -91,9 +91,9 @@ struct card_name
 
 struct card
 {
-    using cvar = std::variant<s_card_suitnum, e_card_mark>;
+    using card_variant_t = std::variant<s_card_suitnum, e_card_mark>;
 
-    const cvar c;
+    const card_variant_t c;
 
     card() = delete;
     card(const card& c_) : c(c_.c) {}
@@ -111,7 +111,7 @@ struct card
 
     card& operator= (const card& ref_c)
     {
-        const_cast<cvar&>(c) = ref_c.c;
+        const_cast<card_variant_t&>(c) = ref_c.c;
         return *this;
     }
 

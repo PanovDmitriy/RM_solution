@@ -7,23 +7,23 @@ using namespace rm;
 
 void action1(const event& ref_e)
 {
-    std::cout << "action1: event: " << ref_e.id << ", " << ref_e.name << std::endl;
+    std::cout << "action1: event: " << ref_e.id << std::endl;
 }
 
 void action2(const event& ref_e)
 {
-    std::cout << "action2: event: " << ref_e.id << ", " << ref_e.name << std::endl;
+    std::cout << "action2: event: " << ref_e.id << std::endl;
 }
 
 bool guard_always_false(const event& ref_e)
 {
-    std::cout << "guard_always_false: event: " << ref_e.id << ", " << ref_e.name << std::endl;
+    std::cout << "guard_always_false: event: " << ref_e.id << std::endl;
     return false;
 }
 
 bool guard_always_true(const event& ref_e)
 {
-    std::cout << "guard_always_true: event: " << ref_e.id << ", " << ref_e.name << std::endl;
+    std::cout << "guard_always_true: event: " << ref_e.id << std::endl;
     return true;
 }
 
@@ -114,7 +114,7 @@ void main_SM()
         case 8: ee = &e2final; break;
         case 9: ee = &e3final; break;
         }
-        std::cout << "strike [" << i+1 << "] event: " << ee->name << std::endl << "<" << std::endl;
+        std::cout << "strike [" << i+1 << "] event: " << ee->id << std::endl << "<" << std::endl;
         auto [rez_b, rem] = sm.release_event(*ee);
         std::cout << "result: " << (rez_b ? "Success (" : "Error (") << rem << ")" << std::endl << ">" << std::endl << std::endl;
 

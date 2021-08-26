@@ -2,6 +2,7 @@
 
 #include "..//RM/rule_machine.h"
 #include "play_cards.h"
+#include <algorithm>
 
 using namespace rm;
 
@@ -86,7 +87,7 @@ protected:
             if (!dom.sc_player1.move_card_first2first(dom.sc_table))
             {
                 std::cout << "player1: нет карт!" << std::endl;
-                this->riser.rise_event(event(dom.no_card_id, "no_card", int(1)), false);
+                this->riser.rise_event(event(dom.no_card_id, int(1)));
                 return;
             }
             std::cout << "player1: " << dom.sc_table.get_first_card().get_name();
@@ -96,7 +97,7 @@ protected:
             if (!dom.sc_player2.move_card_first2first(dom.sc_table))
             {
                 std::cout << "player2: нет карт!" << std::endl;
-                this->riser.rise_event(event(dom.no_card_id, "no_card", int(2)), false);
+                this->riser.rise_event(event(dom.no_card_id, int(2)));
                 return;
             }
             std::cout << "player2: " << dom.sc_table.get_first_card().get_name();
@@ -109,7 +110,7 @@ protected:
             if (!dom.sc_player1.move_card_first2first(dom.sc_table))
             {
                 std::cout << "player1: нет карт!" << std::endl;
-                this->riser.rise_event(event(dom.no_card_id, "no_card", int(1)), false);
+                this->riser.rise_event(event(dom.no_card_id, int(1)));
                 return;
             }
             std::cout << "player1: " << dom.sc_table.get_first_card().get_name();
@@ -117,7 +118,7 @@ protected:
             if (!dom.sc_player1.move_card_first2first(dom.sc_table))
             {
                 std::cout << "player1: нет карт!" << std::endl;
-                this->riser.rise_event(event(dom.no_card_id, "no_card", int(1)), false);
+                this->riser.rise_event(event(dom.no_card_id, int(1)));
                 return;
             }
             std::cout << "player1: " << dom.sc_table.get_first_card().get_name();
@@ -127,7 +128,7 @@ protected:
             if (!dom.sc_player2.move_card_first2first(dom.sc_table))
             {
                 std::cout << "player2: нет карт!" << std::endl;
-                this->riser.rise_event(event(dom.no_card_id, "no_card", int(2)), false);
+                this->riser.rise_event(event(dom.no_card_id, int(2)));
                 return;
             }
             std::cout << "player2: " << dom.sc_table.get_first_card().get_name();
@@ -135,7 +136,7 @@ protected:
             if (!dom.sc_player2.move_card_first2first(dom.sc_table))
             {
                 std::cout << "player2: нет карт!" << std::endl;
-                this->riser.rise_event(event(dom.no_card_id, "no_card", int(2)), false);
+                this->riser.rise_event(event(dom.no_card_id, int(2)));
                 return;
             }
             std::cout << "player2: " << dom.sc_table.get_first_card().get_name();
@@ -145,7 +146,7 @@ protected:
 
         dom.turn_n++;
 
-        this->riser.rise_event(event (dom.card_on_table_id, "card_on_table", std::pair<card, card>(c1, c2)), false);
+        this->riser.rise_event(event (dom.card_on_table_id, std::pair<card, card>(c1, c2)));
     }
 };
 
@@ -249,7 +250,7 @@ protected:
         std::cout << "Player2 карты: " << dom.sc_player2.get_size() << std::endl;
 
         //сообщить "next_turn"
-        riser.rise_event(event (dom.next_turn_id, "next_turn"), false);
+        riser.rise_event(event(dom.next_turn_id));
     }
 };
 
@@ -288,7 +289,7 @@ protected:
                 std::cout << dom.sc_table.get_size() << " карты уходят к Player2" << std::endl;
                 dom.sc_table.move_all_cards_first2back(dom.sc_player2);
                 std::cout << "Карт: " << dom.sc_player1.get_size() << " + " << dom.sc_player2.get_size() << " + стол: " << dom.sc_table.get_size() << std::endl;
-                riser.rise_event(event (dom.next_turn_id, "next_turn"), false);
+                riser.rise_event(event (dom.next_turn_id));
             }
             else if (c2 < c1)
             {
@@ -296,13 +297,13 @@ protected:
                 std::cout << dom.sc_table.get_size () << " карты уходят к Player1" << std::endl;
                 dom.sc_table.move_all_cards_first2back(dom.sc_player1);
                 std::cout << "Карт: " << dom.sc_player1.get_size() << " + " << dom.sc_player2.get_size() << " + стол: " << dom.sc_table.get_size() << std::endl;
-                riser.rise_event(event(dom.next_turn_id, "next_turn"), false);
+                riser.rise_event(event(dom.next_turn_id));
             }
             else if (c1 == c2)
             {
                 std::cout << c1.get_name() << " = " << c2.get_name() << std::endl;
                 std::cout << "карты остаются на столе" << std::endl;
-                riser.rise_event(event(dom.next_sub_turn_id, "next_sub_turn"), false);
+                riser.rise_event(event(dom.next_sub_turn_id));
             }
         }
     }
@@ -343,7 +344,7 @@ void main_Game001()
     sm_players.set_status_enabled(event(dom.init_players_id, "init_players"));
     sm_play.set_status_enabled(event(dom.init_play_id, "init_play"));
     rm.set_status_enabled();
-    rm.rise_event(event(dom.start_play_id, "start_play"));
+    rm.rise_event(event(dom.start_play_id));
 
     auto begin = std::chrono::steady_clock::now();
 
