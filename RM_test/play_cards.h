@@ -232,6 +232,11 @@ public:
 
     void add_card_back(card&& c)
     {
+        cards.emplace_back(c);
+    }
+
+    void add_card_back(card& c)
+    {
         cards.push_back(c);
     }
 

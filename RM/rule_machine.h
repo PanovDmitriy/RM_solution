@@ -61,7 +61,7 @@ namespace rm // rule machine
         event() = delete;
         event(id_t id_) : id(id_) {}
         event(id_t id_, std::any param_) : id(id_), param(param_) {}
-        event(const event& e) = delete;// : id(e.id), param(e.param), time(e.time) {}
+        event(const event& e) : id(e.id), param(e.param), time(e.time) {}
         event(const event&& e) noexcept : id(e.id), param(e.param), time(e.time) {}
 
         void operator= (event&& rv_e) noexcept
