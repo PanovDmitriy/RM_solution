@@ -61,8 +61,8 @@ namespace rm // rule machine
         event() = delete;
         event(id_t id_) : id(id_) { std::cout << "event CONSTR (id=" << id << ")\n"; }
         event(id_t id_, std::any param_) : id(id_), param(std::move(param_)) { std::cout << "event CONSTR (id=" << id << ", param)\n"; }
-        event(const event& e) = delete; // : id(e.id), param(e.param), time(e.time) { std::cout << "event CONSTR (&)\n"; }
-        event(const event&& e) noexcept : id(e.id), param(e.param), time(e.time) { std::cout << "event CONSTR (&& id=" << id << ")\n"; }
+        event(const event& e) : id(e.id), param(e.param), time(e.time) { std::cout << "event CONSTR (&)\n"; }
+        event(const event&& e) = delete; // noexcept : id(e.id), param(e.param), time(e.time) { std::cout << "event CONSTR (&& id=" << id << ")\n"; }
 
         void operator= (event&& rv_e) = delete;/* noexcept
         {

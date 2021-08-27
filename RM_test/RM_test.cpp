@@ -25,7 +25,11 @@ int main()
 
     //main_SM();
 
-    main_Game001();
+    //main_Game001();
+
+    test_param tp;
+    //event e(1, tp);
+    std::any pa (std::move(tp));
 
     return 0;
 }
