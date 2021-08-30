@@ -51,6 +51,35 @@ namespace rm // rule machine
 
     /// event ///
 
+    //class param_exaple
+    //{
+    //private:
+    //    int* ptr = nullptr;
+
+    //public:
+    //    param_exaple()
+    //    {
+    //        ptr = new int[10];
+    //    }
+
+    //    param_exaple(const param_exaple& p)
+    //    {
+    //        ptr = new int[10];
+    //        mem_copy(p, ptr);
+    //    }
+
+    //    param_exaple(param_exaple&& p) noexcept
+    //    {
+    //        ptr = p.ptr;
+    //        p.ptr = nullptr;
+    //    }
+
+    //    ~param_exaple()
+    //    {
+    //        delete ptr;
+    //    }
+    //};
+
     class event final
     {
     public:
@@ -59,29 +88,45 @@ namespace rm // rule machine
         const std::any param;
 
         event() = delete;
-        event(id_t id_) : id(id_) { std::cout << "event CONSTR (id=" << id << ")\n"; }
-        event(id_t id_, std::any param_) : id(id_), param(std::move(param_)) { std::cout << "event CONSTR (id=" << id << ", param)\n"; }
-        event(const event& e) : id(e.id), param(e.param), time(e.time) { std::cout << "event CONSTR (&)\n"; }
-        event(const event&& e) = delete; // noexcept : id(e.id), param(e.param), time(e.time) { std::cout << "event CONSTR (&& id=" << id << ")\n"; }
+        event(id_t id_) : 
+            id(id_) 
+        { 
+        }
+        event(id_t id_, const std::any param_) : 
+            id(id_), param(param_) 
+        {
+        }
+        event(const event& e) : 
+            id(e.id), param(e.param), time(e.time) 
+        { 
+        }
+        event(event&& e) noexcept : 
+            id(e.id), time(e.time)
+        {
+            const_cast<std::any&>(e.param).swap(const_cast<std::any&>(param)); 
+        }
 
-        void operator= (event&& rv_e) = delete;/* noexcept
+        void operator= (const event& ref_e) noexcept
+        {
+            const_cast<id_t&>(id) = ref_e.id;
+            const_cast<std::any&>(param) = ref_e.param;
+        }
+        void operator= (event&& rv_e) noexcept
         {
             const_cast<id_t&>(id) = rv_e.id;
-            const_cast<std::any&>(param) = rv_e.param;
-            const_cast<std::any&>(rv_e.param) = 0;
-        }*/
+            const_cast<std::any&>(rv_e.param).swap(const_cast<std::any&>(param));
+        }
         
         bool operator== (const event& ref_e)
         {
             return id == ref_e.id;
         }
-
         bool operator != (const event& ref_e)
         {
             return !(id == ref_e.id);
         }
 
-        ~event() { std::cout << "event DESTR\n"; };
+        ~event() {};
     };
 
     /// end event ///
