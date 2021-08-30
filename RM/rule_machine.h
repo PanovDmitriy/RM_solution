@@ -679,6 +679,15 @@ namespace rm // rule machine
             state_machines.push_back(ptr_sm);
         }
 
+        result_t rise_event(const event& ref_e, const state_machine* ptr_sm = nullptr)
+        {
+            //event_queue.push(std::move(event_target_t{ std::move(const_cast<event&>(ref_e)), ptr_sm }));
+            //event_queue.push(event_target_t{ std::move(const_cast<event&>(ref_e)), ptr_sm });
+            event_queue.push(event_target_t{ ref_e, ptr_sm });
+
+            return { true, msg().true_ok };
+        }
+
         result_t release_events()
         {
             while (!event_queue.empty())
@@ -730,13 +739,6 @@ namespace rm // rule machine
         // - control methods sm
 
     public:
-        result_t rise_event(const event& ref_e, const state_machine* ptr_sm = nullptr)
-        {
-            event_queue.push(std::move(event_target_t{ std::move(const_cast<event&>(ref_e)), ptr_sm }));
-
-            return { true, msg().true_ok };
-        }
-
         void clear()
         {
             set_status_disabled();
