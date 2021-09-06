@@ -33,6 +33,10 @@ namespace rm // rule machine
         {
             return static_cast<TStateMachine*>(this)->rise_event(ref_e, is_local);
         }
+        result_t rise_event(event&& rlv_e, bool is_local = false)
+        {
+            return static_cast<TStateMachine*>(this)->rise_event(std::move(rlv_e), is_local);
+        }
     };
 
     template <class TRuleMachine> // CRPT interface for event rise event callback
@@ -41,6 +45,10 @@ namespace rm // rule machine
         result_t rise_event(const event& ref_e, const state_machine* ptr_sm = nullptr)
         {
             return static_cast<TRuleMachine*>(this)->rise_event(ref_e, ptr_sm);
+        }
+        result_t rise_event(event&& rlv_e, const state_machine* ptr_sm = nullptr)
+        {
+            return static_cast<TRuleMachine*>(this)->rise_event(std::move(rlv_e), ptr_sm);
         }
     };
 
@@ -92,11 +100,16 @@ namespace rm // rule machine
             id(id_) 
         { 
         }
-        event(id_t id_, const std::any param_) : 
-            id(id_), param(param_) 
+        event(id_t id_, const std::any& param_) :
+            id(id_), param(param_)
         {
         }
-        event(const event& e) : 
+        event(id_t id_, std::any&& param_) :
+            id(id_)
+        {
+            param_.swap(const_cast<std::any&>(param));
+        }
+        event(const event& e) :
             id(e.id), param(e.param), time(e.time) 
         { 
         }
@@ -467,6 +480,19 @@ namespace rm // rule machine
             return { false, msg().false_riser_is_null };
         }
 
+        result_t rise_event(event&& rlv_e, bool is_local) // инициировать событие
+        {
+            if (rm_riser)
+            {
+                if (is_local)
+                    return rm_riser->rise_event(std::move(rlv_e), this); // что б избежать рекурсии, отправить в общую очередь, а не вызывать release_event
+                else
+                    return rm_riser->rise_event(std::move(rlv_e));
+            }
+
+            return { false, msg().false_riser_is_null };
+        }
+
     public:
         result_t release_event(const event& ref_e) // реализовать событие
         {
@@ -684,6 +710,13 @@ namespace rm // rule machine
             //event_queue.push(std::move(event_target_t{ std::move(const_cast<event&>(ref_e)), ptr_sm }));
             //event_queue.push(event_target_t{ std::move(const_cast<event&>(ref_e)), ptr_sm });
             event_queue.push(event_target_t{ ref_e, ptr_sm });
+
+            return { true, msg().true_ok };
+        }
+
+        result_t rise_event(event&& rlv_e, const state_machine* ptr_sm = nullptr)
+        {
+            event_queue.push(event_target_t{ std::move(rlv_e), ptr_sm });
 
             return { true, msg().true_ok };
         }

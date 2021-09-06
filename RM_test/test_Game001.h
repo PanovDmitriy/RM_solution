@@ -12,6 +12,36 @@ class state_pre_play;
 class state_turn_play;
 
 
+struct test_param
+{
+    int val = -1;
+
+    test_param() :
+        val(1)
+    {
+        std::cout << "test_param.construct() val: " << val << std::endl;
+    }
+
+    test_param(const test_param& tp) :
+        val(tp.val)
+    {
+        std::cout << "test_param.construct(&) val: " << val << std::endl;
+    }
+
+    test_param(test_param&& tp) :
+        val(tp.val)
+    {
+        std::cout << "test_param.construct(&&) val: " << val << std::endl;
+        tp.val = 0;
+    }
+
+    ~test_param()
+    {
+        std::cout << "test_param.destruct() val: " << val << std::endl;
+        int val = -1;
+    }
+};
+
 class DOM
 {
 public:
@@ -297,7 +327,7 @@ protected:
                 std::cout << dom.sc_table.get_size () << " карты уходят к Player1" << std::endl;
                 dom.sc_table.move_all_cards_first2back(dom.sc_player1);
                 std::cout << "Карт: " << dom.sc_player1.get_size() << " + " << dom.sc_player2.get_size() << " + стол: " << dom.sc_table.get_size() << std::endl;
-                riser.rise_event(event(dom.next_turn_id));
+                riser.rise_event(event(dom.next_turn_id, std::move(test_param ())));
             }
             else if (c1 == c2)
             {
