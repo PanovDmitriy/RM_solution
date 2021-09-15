@@ -99,24 +99,27 @@ namespace rm // rule machine
         event(id_t id_) : 
             id(id_) 
         { 
+            //std::cout << "event.construct(id) id: " << id << std::endl;
         }
         event(id_t id_, const std::any& param_) :
             id(id_), param(param_)
         {
+            //std::cout << "event.construct(id, &param) id: " << id << std::endl;
         }
         event(id_t id_, std::any&& param_) :
-            id(id_)
+            id(id_), param(std::move(param_))
         {
-            param_.swap(const_cast<std::any&>(param));
+            //std::cout << "event.construct(id, &&param) id: " << id << std::endl;
         }
         event(const event& e) :
             id(e.id), param(e.param), time(e.time) 
         { 
+            //std::cout << "event.construct(event&) id: " << id << std::endl;
         }
         event(event&& e) noexcept : 
-            id(e.id), time(e.time)
+            id(e.id), time(e.time), param (std::move(const_cast<std::any&>(e.param)))
         {
-            const_cast<std::any&>(e.param).swap(const_cast<std::any&>(param)); 
+            //std::cout << "event.construct(event&&) id: " << id << std::endl;
         }
 
         void operator= (const event& ref_e) noexcept
@@ -139,7 +142,10 @@ namespace rm // rule machine
             return !(id == ref_e.id);
         }
 
-        ~event() {};
+        ~event() 
+        {
+            //std::cout << "event.destruct() id: " << id << std::endl;
+        };
     };
 
     /// end event ///
@@ -707,8 +713,6 @@ namespace rm // rule machine
 
         result_t rise_event(const event& ref_e, const state_machine* ptr_sm = nullptr)
         {
-            //event_queue.push(std::move(event_target_t{ std::move(const_cast<event&>(ref_e)), ptr_sm }));
-            //event_queue.push(event_target_t{ std::move(const_cast<event&>(ref_e)), ptr_sm });
             event_queue.push(event_target_t{ ref_e, ptr_sm });
 
             return { true, msg().true_ok };

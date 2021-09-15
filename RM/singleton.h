@@ -2,7 +2,6 @@
 
 #pragma once
 
-template <class TDerivedSingleton> class singleton;  // опережающее объ€вление
 
 
 template <class TSingleton>
@@ -12,11 +11,15 @@ private:
     TSingleton* p_instance = nullptr;
 
 public:
-    ~singleton_destroyer();
-
     void initialize(TSingleton* p)
     {
         p_instance = p;
+    }
+
+    ~singleton_destroyer()
+    {
+        if (p_instance)
+            delete p_instance;
     }
 };
 
@@ -48,11 +51,4 @@ public:
         return *p_instance;
     }
 };
-
-template <class TSingleton>
-singleton_destroyer<TSingleton>::~singleton_destroyer()
-{
-    if (p_instance)
-        delete p_instance;
-}
 
