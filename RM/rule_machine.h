@@ -13,9 +13,10 @@
 
 
 
-
 namespace rm // rule machine
 {
+    constexpr bool is_event_life_view = false;
+
     class event;
     class state_machine;
     class rule_machine;
@@ -24,7 +25,7 @@ namespace rm // rule machine
     using result_t = std::tuple <bool, std::string>;
     using ptr_action_t = void (*)(const event&);
     using ptr_guard_t = bool (*)(const event&);
-    using event_target_t = std::pair <const event, const state_machine*>;
+    using event_target_t = std::pair <event, const state_machine*>; // no "const event"!
 
     template <class TStateMachine> // CRPT interface for event rise event callback
     struct ISMEventRiser
@@ -91,7 +92,8 @@ namespace rm // rule machine
     class event final
     {
     public:
-        const id_t id = -1; // идентификатор
+        const id_t id_undef_value = -1;
+        const id_t id = id_undef_value; // идентификатор
         const std::time_t time = std::time(nullptr); // время создания события
         const std::any param;
 
@@ -99,27 +101,33 @@ namespace rm // rule machine
         event(id_t id_) : 
             id(id_) 
         { 
-            //std::cout << "event.construct(id) id: " << id << std::endl;
+            if constexpr (is_event_life_view)
+                std::cout << "event.construct(id) id: " << id << std::endl;
         }
         event(id_t id_, const std::any& param_) :
             id(id_), param(param_)
         {
-            //std::cout << "event.construct(id, &param) id: " << id << std::endl;
+            if constexpr (is_event_life_view)
+                std::cout << "event.construct(id, &param) id: " << id << std::endl;
         }
         event(id_t id_, std::any&& param_) :
             id(id_), param(std::move(param_))
         {
-            //std::cout << "event.construct(id, &&param) id: " << id << std::endl;
+            if constexpr (is_event_life_view)
+                std::cout << "event.construct(id, &&param) id: " << id << std::endl;
         }
         event(const event& e) :
             id(e.id), param(e.param), time(e.time) 
         { 
-            //std::cout << "event.construct(event&) id: " << id << std::endl;
+            if constexpr (is_event_life_view)
+                std::cout << "event.construct(event&) id: " << id << std::endl;
         }
         event(event&& e) noexcept : 
             id(e.id), time(e.time), param (std::move(const_cast<std::any&>(e.param)))
         {
-            //std::cout << "event.construct(event&&) id: " << id << std::endl;
+            const_cast<id_t&>(e.id) = id_undef_value;
+            if constexpr (is_event_life_view)
+                std::cout << "event.construct(event&&) id: " << id << std::endl;
         }
 
         void operator= (const event& ref_e) noexcept
@@ -130,6 +138,7 @@ namespace rm // rule machine
         void operator= (event&& rv_e) noexcept
         {
             const_cast<id_t&>(id) = rv_e.id;
+            const_cast<id_t&>(rv_e.id) = id_undef_value;
             const_cast<std::any&>(rv_e.param).swap(const_cast<std::any&>(param));
         }
         
@@ -144,7 +153,8 @@ namespace rm // rule machine
 
         ~event() 
         {
-            //std::cout << "event.destruct() id: " << id << std::endl;
+            if constexpr (is_event_life_view)
+                std::cout << "event.destruct() id: " << id << std::endl;
         };
     };
 
@@ -452,7 +462,8 @@ namespace rm // rule machine
             state* ptr_target_state = nullptr;
         };
 
-        std::map<state* /*source state*/, std::multimap<id_t /*event id*/, transit_to_state>> state_transitions_tab;
+        using state_transitions_tab_t = std::map<state* /*source state*/, std::multimap<id_t /*event id*/, transit_to_state>>;
+        state_transitions_tab_t state_transitions_tab;
 
         i_rm_event_riser_t* rm_riser = nullptr;
 
@@ -608,11 +619,9 @@ namespace rm // rule machine
             return rez;
         }
 
-        void check_obj()
+        void view_integrity()
         {
             std::cout << "state list:" << std::endl;
-
-            //look: std::map<state*, std::multimap<id_t /*event id*/, link_to_state>> state_transitions_tab;
 
             for (auto& a : state_transitions_tab)
             {
@@ -627,6 +636,11 @@ namespace rm // rule machine
                     std::cout << transit_to_state.ptr_target_state->to_string() << std::endl;
                 }
             }
+        }
+
+        bool check_integrity()
+        {
+            return true;
         }
 
         // + control methods sm

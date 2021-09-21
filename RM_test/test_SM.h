@@ -122,7 +122,7 @@ void main_SM()
             break;
     }
 
-    sm.check_obj();
+    sm.view_integrity();
 
     rm.clear();
 }
