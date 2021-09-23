@@ -31,26 +31,36 @@ namespace rm // rule machine
     template <class TStateMachine> // CRPT interface for event rise event callback
     struct ISMEventRiser
     {
-        result_t rise_event(const event& ref_e, bool is_local = false)
+        //result_t rise_event(const event& ref_e, bool is_local = false)
+        //{
+        //    return static_cast<TStateMachine*>(this)->rise_event(ref_e, is_local);
+        //}
+        //result_t rise_event(event&& rlv_e, bool is_local = false)
+        //{
+        //    return static_cast<TStateMachine*>(this)->rise_event(std::move(rlv_e), is_local);
+        //}
+        template <typename TEvent>
+        result_t rise_event(TEvent&& rlv_e, bool is_local = false)
         {
-            return static_cast<TStateMachine*>(this)->rise_event(ref_e, is_local);
-        }
-        result_t rise_event(event&& rlv_e, bool is_local = false)
-        {
-            return static_cast<TStateMachine*>(this)->rise_event(std::move(rlv_e), is_local);
+            return static_cast<TStateMachine*>(this)->rise_event(std::forward<TEvent>(rlv_e), is_local);
         }
     };
 
     template <class TRuleMachine> // CRPT interface for event rise event callback
     struct IRMEventRiser
     {
-        result_t rise_event(const event& ref_e, const state_machine* ptr_sm = nullptr)
+        //result_t rise_event(const event& ref_e, const state_machine* ptr_sm = nullptr)
+        //{
+        //    return static_cast<TRuleMachine*>(this)->rise_event(ref_e, ptr_sm);
+        //}
+        //result_t rise_event(event&& rlv_e, const state_machine* ptr_sm = nullptr)
+        //{
+        //    return static_cast<TRuleMachine*>(this)->rise_event(std::move(rlv_e), ptr_sm);
+        //}
+        template <typename TEvent>
+        result_t rise_event(TEvent&& rlv_e, const state_machine* ptr_sm = nullptr)
         {
-            return static_cast<TRuleMachine*>(this)->rise_event(ref_e, ptr_sm);
-        }
-        result_t rise_event(event&& rlv_e, const state_machine* ptr_sm = nullptr)
-        {
-            return static_cast<TRuleMachine*>(this)->rise_event(std::move(rlv_e), ptr_sm);
+            return static_cast<TRuleMachine*>(this)->rise_event(std::forward<TEvent>(rlv_e), ptr_sm);
         }
     };
 
@@ -99,30 +109,29 @@ namespace rm // rule machine
         const std::any param;
 
         event() = delete;
+
         event(id_t id_) : 
             id(id_) 
         { 
             if constexpr (is_event_log)
                 std::cout << "log: event(id) id: " << id << std::endl;
         }
-        event(id_t id_, const std::any& param_) :
-            id(id_), param(param_)
+
+        template<typename T>
+        event(id_t id_, T&& param_) :
+            id(id_), param{ std::forward<T>(param_) }
         {
             if constexpr (is_event_log)
-                std::cout << "log: event(id, const &param) id: " << id << std::endl;
+                std::cout << "log: event(id, template T&& param) id: " << id << std::endl;
         }
-        event(id_t id_, std::any&& param_) :
-            id(id_), param(std::move(param_))
-        {
-            if constexpr (is_event_log)
-                std::cout << "log: event(id, &&param) id: " << id << std::endl;
-        }
+
         event(const event& e) :
             id(e.id), param(e.param), time(e.time) 
         { 
             if constexpr (is_event_log)
                 std::cout << "log: event(const event&) id: " << id << std::endl;
         }
+
         event(event&& e) noexcept : 
             id(e.id), time(e.time), param (std::move(const_cast<std::any&>(e.param)))
         {
@@ -489,31 +498,29 @@ namespace rm // rule machine
         }
 
     public:
-        result_t rise_event(const event& ref_e, bool is_local) // инициировать событие
+        template<typename TEvent>
+        result_t rise_event(TEvent&& rlv_e, bool is_local) // инициировать событие
         {
             if (rm_riser)
-            {
-                if (is_local)
-                    return rm_riser->rise_event(ref_e, this); // что б избежать рекурсии, отправить в общую очередь, а не вызывать release_event
-                else
-                    return rm_riser->rise_event(ref_e);
-            }
+                return rm_riser->rise_event(std::forward<TEvent>(rlv_e), is_local ? this : nullptr); // что б избежать рекурсии, отправить в общую очередь, а не вызывать release_event
 
             return { false, msg().false_riser_is_null };
         }
+        //result_t rise_event(const event& ref_e, bool is_local) // инициировать событие
+        //{
+        //    if (rm_riser)
+        //        return rm_riser->rise_event(ref_e, is_local ? this : nullptr); // что б избежать рекурсии, отправить в общую очередь, а не вызывать release_event
 
-        result_t rise_event(event&& rlv_e, bool is_local) // инициировать событие
-        {
-            if (rm_riser)
-            {
-                if (is_local)
-                    return rm_riser->rise_event(std::move(rlv_e), this); // что б избежать рекурсии, отправить в общую очередь, а не вызывать release_event
-                else
-                    return rm_riser->rise_event(std::move(rlv_e));
-            }
+        //    return { false, msg().false_riser_is_null };
+        //}
 
-            return { false, msg().false_riser_is_null };
-        }
+        //result_t rise_event(event&& rlv_e, bool is_local) // инициировать событие
+        //{
+        //    if (rm_riser)
+        //        return rm_riser->rise_event(std::move(rlv_e), is_local ? this : nullptr); // что б избежать рекурсии, отправить в общую очередь, а не вызывать release_event
+
+        //    return { false, msg().false_riser_is_null };
+        //}
 
     public:
         result_t release_event(const event& ref_e) // реализовать событие
@@ -781,19 +788,26 @@ namespace rm // rule machine
             state_machines.push_back(ptr_sm);
         }
 
-        result_t rise_event(const event& ref_e, const state_machine* ptr_sm = nullptr)
+        template <typename TEvent>
+        result_t rise_event(TEvent&& rlv_e, const state_machine* ptr_sm = nullptr)
         {
-            event_queue.push(event_target_t{ ref_e, ptr_sm });
+            event_queue.push(event_target_t{ std::forward<TEvent>(rlv_e), ptr_sm });
 
             return { true, msg().true_ok };
         }
+        //result_t rise_event(const event& ref_e, const state_machine* ptr_sm = nullptr)
+        //{
+        //    event_queue.push(event_target_t{ ref_e, ptr_sm });
 
-        result_t rise_event(event&& rlv_e, const state_machine* ptr_sm = nullptr)
-        {
-            event_queue.push(event_target_t{ std::move(rlv_e), ptr_sm });
+        //    return { true, msg().true_ok };
+        //}
 
-            return { true, msg().true_ok };
-        }
+        //result_t rise_event(event&& rlv_e, const state_machine* ptr_sm = nullptr)
+        //{
+        //    event_queue.push(event_target_t{ std::move(rlv_e), ptr_sm });
+
+        //    return { true, msg().true_ok };
+        //}
 
         result_t release_events()
         {

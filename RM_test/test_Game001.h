@@ -281,7 +281,7 @@ protected:
         std::cout << "Player2 карты: " << dom.sc_player2.get_size() << std::endl;
 
         //сообщить "next_turn"
-        riser.rise_event({ dom.next_turn_id });
+        riser.rise_event(dom.next_turn_id);
     }
 };
 
@@ -320,7 +320,7 @@ protected:
                 std::cout << dom.sc_table.get_size() << " карты уходят к Player2" << std::endl;
                 dom.sc_table.move_all_cards_first2back(dom.sc_player2);
                 std::cout << "Карт: " << dom.sc_player1.get_size() << " + " << dom.sc_player2.get_size() << " + стол: " << dom.sc_table.get_size() << std::endl;
-                riser.rise_event({ dom.next_turn_id });
+                riser.rise_event(event{ dom.next_turn_id });
             }
             else if (c2 < c1)
             {
@@ -329,13 +329,13 @@ protected:
                 dom.sc_table.move_all_cards_first2back(dom.sc_player1);
                 std::cout << "Карт: " << dom.sc_player1.get_size() << " + " << dom.sc_player2.get_size() << " + стол: " << dom.sc_table.get_size() << std::endl;
                 //riser.rise_event(event(dom.next_turn_id, std::move(test_param {})));
-                riser.rise_event({ dom.next_turn_id });
+                riser.rise_event(event{ dom.next_turn_id });
             }
             else if (c1 == c2)
             {
                 std::cout << c1.get_name() << " = " << c2.get_name() << std::endl;
                 std::cout << "карты остаются на столе" << std::endl;
-                riser.rise_event({ dom.next_sub_turn_id });
+                riser.rise_event(event{ dom.next_sub_turn_id });
             }
         }
     }
@@ -381,7 +381,8 @@ void main_Game001()
     sm_players.set_status_enabled(event(dom.init_players_id, "init_players"));
     sm_play.set_status_enabled(event(dom.init_play_id, "init_play"));
     rm.set_status_enabled();
-    rm.rise_event({ dom.start_play_id });
+    event e_start(dom.start_play_id);
+    rm.rise_event(e_start);
 
     auto begin = std::chrono::steady_clock::now();
 
@@ -392,6 +393,8 @@ void main_Game001()
     auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
 
     std::cout << "\n24.08.2021 time: 16000\n   current time: " << elapsed_ms.count() << "\n";
+
+    std::cout << "e_start: " << e_start.id << std::endl;
 
     //sm_players.check_obj();
     //sm_play.check_obj();
