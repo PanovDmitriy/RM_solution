@@ -373,6 +373,11 @@ void main_Game001()
     sm_play.add_event_state_state_transition(dom.card_on_table_id, &st_turn_play, &st_turn_play);
     sm_play.add_event_state_state_transition(dom.no_card_id, &st_turn_play, &st_final_play);
 
+    auto [sm_players_cib, sm_players_cis] = sm_players.check_integrity();
+    auto [sm_play_cib, sm_play_cis] = sm_play.check_integrity();
+    std::cout << "sm_players check integrity: " << sm_players_cis << std::endl;
+    std::cout << "sm_play check integrity: " << sm_play_cis << std::endl;
+
     sm_players.set_status_enabled(event(dom.init_players_id, "init_players"));
     sm_play.set_status_enabled(event(dom.init_play_id, "init_play"));
     rm.set_status_enabled();

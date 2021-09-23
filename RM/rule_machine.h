@@ -4,6 +4,7 @@
 #include <vector>
 #include <queue>
 #include <map>
+#include <set>
 #include <string>
 #include <iostream>
 #include <ctime>
@@ -15,7 +16,7 @@
 
 namespace rm // rule machine
 {
-    constexpr bool is_event_life_view = false;
+    constexpr bool is_event_log = true;
 
     class event;
     class state_machine;
@@ -101,45 +102,49 @@ namespace rm // rule machine
         event(id_t id_) : 
             id(id_) 
         { 
-            if constexpr (is_event_life_view)
-                std::cout << "event.construct(id) id: " << id << std::endl;
+            if constexpr (is_event_log)
+                std::cout << "log: event(id) id: " << id << std::endl;
         }
         event(id_t id_, const std::any& param_) :
             id(id_), param(param_)
         {
-            if constexpr (is_event_life_view)
-                std::cout << "event.construct(id, &param) id: " << id << std::endl;
+            if constexpr (is_event_log)
+                std::cout << "log: event(id, const &param) id: " << id << std::endl;
         }
         event(id_t id_, std::any&& param_) :
             id(id_), param(std::move(param_))
         {
-            if constexpr (is_event_life_view)
-                std::cout << "event.construct(id, &&param) id: " << id << std::endl;
+            if constexpr (is_event_log)
+                std::cout << "log: event(id, &&param) id: " << id << std::endl;
         }
         event(const event& e) :
             id(e.id), param(e.param), time(e.time) 
         { 
-            if constexpr (is_event_life_view)
-                std::cout << "event.construct(event&) id: " << id << std::endl;
+            if constexpr (is_event_log)
+                std::cout << "log: event(const event&) id: " << id << std::endl;
         }
         event(event&& e) noexcept : 
             id(e.id), time(e.time), param (std::move(const_cast<std::any&>(e.param)))
         {
             const_cast<id_t&>(e.id) = id_undef_value;
-            if constexpr (is_event_life_view)
-                std::cout << "event.construct(event&&) id: " << id << std::endl;
+            if constexpr (is_event_log)
+                std::cout << "log: event(event&&) id: " << id << std::endl;
         }
 
         void operator= (const event& ref_e) noexcept
         {
             const_cast<id_t&>(id) = ref_e.id;
             const_cast<std::any&>(param) = ref_e.param;
+            if constexpr (is_event_log)
+                std::cout << "log: op=(const event&) id: " << id << std::endl;
         }
         void operator= (event&& rv_e) noexcept
         {
             const_cast<id_t&>(id) = rv_e.id;
             const_cast<id_t&>(rv_e.id) = id_undef_value;
             const_cast<std::any&>(rv_e.param).swap(const_cast<std::any&>(param));
+            if constexpr (is_event_log)
+                std::cout << "log: op=(event&&) id: " << id << std::endl;
         }
         
         bool operator== (const event& ref_e)
@@ -153,8 +158,8 @@ namespace rm // rule machine
 
         ~event() 
         {
-            if constexpr (is_event_life_view)
-                std::cout << "event.destruct() id: " << id << std::endl;
+            if constexpr (is_event_log)
+                std::cout << "log: ~event id: " << id << std::endl;
         };
     };
 
@@ -638,9 +643,60 @@ namespace rm // rule machine
             }
         }
 
-        bool check_integrity()
+        result_t check_integrity()
         {
-            return true;
+            // final не может быть исходным
+            // init не может быть целевым
+            // init не может быть null
+            // все исходные и целевые должы быть не null
+            // из init должен быть переход
+            // в каждое состояние (кроме init state) должен существовать переход
+            // примечение: состояние (кролме init) не обязано быть исходным
+
+            if (!initial_state_ptr)
+                return { false, "Init state is null" };
+
+            state* istate_ptr = static_cast<state*>(initial_state_ptr);
+            state* fstate_ptr = static_cast<state*>(final_state_ptr);
+            bool is_init_as_source = false;
+            std::set<state*> target_states;
+
+            for (auto& [ptr_source_state, a] : state_transitions_tab)
+            {
+                if (ptr_source_state == nullptr)
+                    return { false, "Source state is null" };
+
+                if (ptr_source_state == istate_ptr)
+                    is_init_as_source = true;
+
+                if (ptr_source_state == fstate_ptr)
+                    return { false, "Final state is source state" };
+
+                for (auto& [event_id, transit_to_state] : a)
+                {
+                    if (transit_to_state.ptr_target_state == nullptr)
+                        return { false, "Target state is null" };
+
+                    if (transit_to_state.ptr_target_state == istate_ptr)
+                        return { false, "Init state is target state" };
+
+                    target_states.insert(transit_to_state.ptr_target_state);
+                }
+            }
+
+            if (!is_init_as_source)
+                return { false, "Init state haven't transitions" };
+
+            for (auto& [ptr_source_state, a] : state_transitions_tab)
+            {
+                if (ptr_source_state == istate_ptr)
+                    continue;
+
+                if (target_states.find(ptr_source_state) == target_states.end())
+                    return { false, "Not linked state" };
+            }
+
+            return { true, msg().true_ok };
         }
 
         // + control methods sm
