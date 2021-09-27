@@ -25,15 +25,15 @@ int main()
 
     //main_SM();
 
-    //main_Game001();
+    main_Game001();
 
 
     //test_param tp;
-    event e1(1);//, tp);
+    //event e1(1);//, tp);
     //event e2(2, test_param {});
-    rule_machine rmx;
-    state_machine smx(&rmx);
-    smx.rise_event(std::move(e1), true);
+    //rule_machine rmx;
+    //state_machine smx(&rmx);
+    //smx.rise_event(std::move(e1), true);
     //smx.rise_event(std::move(e2), true);
     //smx.rise_event({3}, true);
 

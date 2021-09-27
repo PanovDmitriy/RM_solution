@@ -88,13 +88,13 @@ class state_turn_player :
     public state
 {
 protected:
-    i_sm_event_riser_t& riser;
+    IRule& riser;
 
 private:
     DOM& dom;
 
 public:
-    state_turn_player(i_sm_event_riser_t& riser_, DOM& dom_) :
+    state_turn_player(IRule& riser_, DOM& dom_) :
         riser(riser_),
         dom (dom_)
     {
@@ -186,13 +186,13 @@ class state_pre_play :
     public state
 {
 protected:
-    i_sm_event_riser_t& riser;
+    IRule& riser;
 
 private:
     DOM& dom;
 
 public:
-    state_pre_play(i_sm_event_riser_t& riser_, DOM& dom_) :
+    state_pre_play(IRule& riser_, DOM& dom_) :
         riser(riser_),
         dom(dom_)
     {
@@ -290,13 +290,13 @@ class state_turn_play :
     public state
 {
 protected:
-    i_sm_event_riser_t& riser;
+    IRule& riser;
 
 private:
     DOM& dom;
 
 public:
-    state_turn_play(i_sm_event_riser_t& riser_, DOM& dom_) :
+    state_turn_play(IRule& riser_, DOM& dom_) :
         riser(riser_),
         dom(dom_)
     {
@@ -335,7 +335,7 @@ protected:
             {
                 std::cout << c1.get_name() << " = " << c2.get_name() << std::endl;
                 std::cout << "карты остаются на столе" << std::endl;
-                riser.rise_event(event{ dom.next_sub_turn_id });
+                riser.rise_event(dom.next_sub_turn_id);
             }
         }
     }

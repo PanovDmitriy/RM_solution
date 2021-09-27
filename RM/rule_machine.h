@@ -16,7 +16,7 @@
 
 namespace rm // rule machine
 {
-    constexpr bool is_event_log = true;
+    constexpr bool is_event_log = false;
 
     class event;
     class state_machine;
@@ -26,48 +26,29 @@ namespace rm // rule machine
     using result_t = std::tuple <bool, std::string>;
     using ptr_action_t = void (*)(const event&);
     using ptr_guard_t = bool (*)(const event&);
-    using event_target_t = std::pair <event, const state_machine*>; // no "const event"!
-
-    template <class TStateMachine> // CRPT interface for event rise event callback
-    struct ISMEventRiser
-    {
-        //result_t rise_event(const event& ref_e, bool is_local = false)
-        //{
-        //    return static_cast<TStateMachine*>(this)->rise_event(ref_e, is_local);
-        //}
-        //result_t rise_event(event&& rlv_e, bool is_local = false)
-        //{
-        //    return static_cast<TStateMachine*>(this)->rise_event(std::move(rlv_e), is_local);
-        //}
-        template <typename TEvent>
-        result_t rise_event(TEvent&& rlv_e, bool is_local = false)
-        {
-            return static_cast<TStateMachine*>(this)->rise_event(std::forward<TEvent>(rlv_e), is_local);
-        }
-    };
-
-    template <class TRuleMachine> // CRPT interface for event rise event callback
-    struct IRMEventRiser
-    {
-        //result_t rise_event(const event& ref_e, const state_machine* ptr_sm = nullptr)
-        //{
-        //    return static_cast<TRuleMachine*>(this)->rise_event(ref_e, ptr_sm);
-        //}
-        //result_t rise_event(event&& rlv_e, const state_machine* ptr_sm = nullptr)
-        //{
-        //    return static_cast<TRuleMachine*>(this)->rise_event(std::move(rlv_e), ptr_sm);
-        //}
-        template <typename TEvent>
-        result_t rise_event(TEvent&& rlv_e, const state_machine* ptr_sm = nullptr)
-        {
-            return static_cast<TRuleMachine*>(this)->rise_event(std::forward<TEvent>(rlv_e), ptr_sm);
-        }
-    };
-
-    using i_sm_event_riser_t = ISMEventRiser<state_machine>;
-    using i_rm_event_riser_t = IRMEventRiser<rule_machine>;
 
     enum class status { enabled, disabled, paused };
+
+    struct IRule
+    {
+        virtual result_t rise_event(const event& ref_e, bool is_local = false) = 0;
+        virtual result_t rise_event(event&& rlv_e, bool is_local = false) = 0;
+        virtual result_t release_event(const event& ref_e) = 0;
+        virtual void set_status_enabled(const event& e) = 0;
+        virtual void set_status_paused() = 0;
+        virtual void set_status_disabled() = 0;
+        virtual void clear() = 0;
+    };
+
+
+    struct IRuleMachine
+    {
+        virtual result_t rise_event(const event& ref_e, const IRule* ptr_sm = nullptr) = 0;
+        virtual result_t rise_event(event&& rlv_e, const IRule* ptr_sm = nullptr) = 0;
+    };
+
+    using event_target_t = std::pair <event, const IRule*>; // no "const event"!
+
 
     /// event ///
 
@@ -198,14 +179,14 @@ namespace rm // rule machine
         : public transition
     {
     protected:
-        i_sm_event_riser_t& riser;
+        IRule& riser;
 
     protected:
         std::vector <ptr_action_t> actions;
         std::vector <ptr_guard_t> guards;
 
     public:
-        transition_vecs(i_sm_event_riser_t& riser_) :
+        transition_vecs(IRule& riser_) :
             riser(riser_)
         {
         }
@@ -259,7 +240,7 @@ namespace rm // rule machine
     public:
         transition_test() = delete;
 
-        transition_test(i_sm_event_riser_t& riser_, std::string name_) :
+        transition_test(IRule& riser_, std::string name_) :
             transition_vecs (riser_),
             name(name_)
         {
@@ -371,14 +352,14 @@ namespace rm // rule machine
         : public state
     {
     protected:
-        i_sm_event_riser_t& riser;
+        IRule& riser;
 
     protected:
         std::vector <ptr_action_t> entry_actions;
         std::vector <ptr_action_t> exit_actions;
 
     public:
-        state_vecs(i_sm_event_riser_t& riser_) :
+        state_vecs(IRule& riser_) :
             riser(riser_)
         {
         }
@@ -428,7 +409,7 @@ namespace rm // rule machine
     public:
         state_test() = delete;
 
-        state_test(i_sm_event_riser_t& riser_, std::string _name) :
+        state_test(IRule& riser_, std::string _name) :
             state_vecs (riser_),
             name(_name)
         {
@@ -462,7 +443,7 @@ namespace rm // rule machine
     /// state_machine
 
     class state_machine :
-        public i_sm_event_riser_t
+        public IRule
     {
         inline auto msg()
         {
@@ -479,7 +460,7 @@ namespace rm // rule machine
         using state_transitions_tab_t = std::map<state* /*source state*/, std::multimap<id_t /*event id*/, transit_to_state>>;
         state_transitions_tab_t state_transitions_tab;
 
-        i_rm_event_riser_t* rm_riser = nullptr;
+        IRuleMachine* rm_riser = nullptr;
 
         state* current_state_ptr = nullptr;
         initial_state* initial_state_ptr = nullptr;
@@ -492,38 +473,30 @@ namespace rm // rule machine
 
         state_machine() = delete;
 
-        state_machine(i_rm_event_riser_t* rm_riser_)
+        state_machine(IRuleMachine* rm_riser_)
             : rm_riser(rm_riser_)
         {
         }
 
     public:
-        template<typename TEvent>
-        result_t rise_event(TEvent&& rlv_e, bool is_local) // инициировать событие
+        result_t rise_event(const event& ref_e, bool is_local) override // инициировать событие
         {
             if (rm_riser)
-                return rm_riser->rise_event(std::forward<TEvent>(rlv_e), is_local ? this : nullptr); // что б избежать рекурсии, отправить в общую очередь, а не вызывать release_event
+                return rm_riser->rise_event(ref_e, is_local ? this : nullptr); // что б избежать рекурсии, отправить в общую очередь, а не вызывать release_event
 
             return { false, msg().false_riser_is_null };
         }
-        //result_t rise_event(const event& ref_e, bool is_local) // инициировать событие
-        //{
-        //    if (rm_riser)
-        //        return rm_riser->rise_event(ref_e, is_local ? this : nullptr); // что б избежать рекурсии, отправить в общую очередь, а не вызывать release_event
 
-        //    return { false, msg().false_riser_is_null };
-        //}
+        result_t rise_event(event&& rlv_e, bool is_local) override // инициировать событие
+        {
+            if (rm_riser)
+                return rm_riser->rise_event(std::move(rlv_e), is_local ? this : nullptr); // что б избежать рекурсии, отправить в общую очередь, а не вызывать release_event
 
-        //result_t rise_event(event&& rlv_e, bool is_local) // инициировать событие
-        //{
-        //    if (rm_riser)
-        //        return rm_riser->rise_event(std::move(rlv_e), is_local ? this : nullptr); // что б избежать рекурсии, отправить в общую очередь, а не вызывать release_event
-
-        //    return { false, msg().false_riser_is_null };
-        //}
+            return { false, msg().false_riser_is_null };
+        }
 
     public:
-        result_t release_event(const event& ref_e) // реализовать событие
+        result_t release_event(const event& ref_e) override // реализовать событие
         {
             // return: success - true, error - false
 
@@ -712,7 +685,7 @@ namespace rm // rule machine
             return curr_status;
         }
 
-        void set_status_enabled(const event& e)
+        void set_status_enabled(const event& e) override
         {
             switch (curr_status)
             {
@@ -730,7 +703,7 @@ namespace rm // rule machine
             }
         }
 
-        void set_status_paused()
+        void set_status_paused() override
         {
             switch (curr_status)
             {
@@ -743,7 +716,7 @@ namespace rm // rule machine
             }
         }
 
-        void set_status_disabled()
+        void set_status_disabled() override
         {
             switch (curr_status)
             {
@@ -759,7 +732,7 @@ namespace rm // rule machine
         }
         // - control methods sm
 
-        void clear()
+        void clear() override
         {
             set_status_disabled ();
             state_transitions_tab.clear();
@@ -770,7 +743,7 @@ namespace rm // rule machine
     /// rule machine
 
     class rule_machine :
-        public i_rm_event_riser_t
+        public IRuleMachine
     {
         inline auto msg()
         {
@@ -779,35 +752,28 @@ namespace rm // rule machine
 
     private:
         std::queue<event_target_t> event_queue;
-        std::vector<state_machine*> state_machines;
+        std::vector<IRule*> state_machines;
         status curr_status = status::disabled;
 
     public:
-        void add_sm(state_machine* ptr_sm)
+        void add_sm(IRule* ptr_sm)
         {
             state_machines.push_back(ptr_sm);
         }
 
-        template <typename TEvent>
-        result_t rise_event(TEvent&& rlv_e, const state_machine* ptr_sm = nullptr)
+        result_t rise_event(const event& ref_e, const IRule* ptr_sm = nullptr) override
         {
-            event_queue.push(event_target_t{ std::forward<TEvent>(rlv_e), ptr_sm });
+            event_queue.push(event_target_t{ ref_e, ptr_sm });
 
             return { true, msg().true_ok };
         }
-        //result_t rise_event(const event& ref_e, const state_machine* ptr_sm = nullptr)
-        //{
-        //    event_queue.push(event_target_t{ ref_e, ptr_sm });
 
-        //    return { true, msg().true_ok };
-        //}
+        result_t rise_event(event&& rlv_e, const IRule* ptr_sm = nullptr) override
+        {
+            event_queue.push(event_target_t{ std::move(rlv_e), ptr_sm });
 
-        //result_t rise_event(event&& rlv_e, const state_machine* ptr_sm = nullptr)
-        //{
-        //    event_queue.push(event_target_t{ std::move(rlv_e), ptr_sm });
-
-        //    return { true, msg().true_ok };
-        //}
+            return { true, msg().true_ok };
+        }
 
         result_t release_events()
         {
@@ -815,9 +781,9 @@ namespace rm // rule machine
             {
                 auto& [e, ptr_sm] = event_queue.front();
                 if (ptr_sm)
-                    const_cast<state_machine*>(ptr_sm)->release_event(e);
+                    const_cast<IRule*>(ptr_sm)->release_event(e);
                 else
-                    for (state_machine* sm : state_machines)
+                    for (IRule* sm : state_machines)
                         if (sm)
                             sm->release_event(e);
 
@@ -845,7 +811,7 @@ namespace rm // rule machine
         {
             curr_status = status::paused;
 
-            for (state_machine* sm : state_machines)
+            for (IRule* sm : state_machines)
                 if (sm)
                     sm->set_status_paused();
         }
@@ -853,7 +819,7 @@ namespace rm // rule machine
         {
             curr_status = status::disabled;
 
-            for (state_machine* sm : state_machines)
+            for (IRule* sm : state_machines)
                 if (sm)
                     sm->set_status_disabled();
         }
@@ -864,7 +830,7 @@ namespace rm // rule machine
         {
             set_status_disabled();
 
-            for (state_machine* ptr_sm : state_machines)
+            for (IRule* ptr_sm : state_machines)
             {
                 if (ptr_sm)
                     ptr_sm->clear();
