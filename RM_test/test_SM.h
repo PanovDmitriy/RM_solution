@@ -43,27 +43,27 @@ void main_SM()
     event e3final(300, "event 3->final");
 
     rule_machine rm;
-    state_machine sm(&rm);
-    rm.add_sm(&sm);
+    state_machine sm;
+    rm.add_machine(&sm);
 
-    state_test s1(sm, "state1");
-    state_test s2(sm, "state2");
-    state_test s3(sm, "state3");
+    state_test s1(rm, "state1");
+    state_test s2(rm, "state2");
+    state_test s3(rm, "state3");
     initial_state si;
     //final_state sf;
 
-    transition_test tinit1(sm, "trans init->1");
-    transition_test tinit2(sm, "trans init->2");
-    transition_test tinit3(sm, "trans init->3");
-    transition_test tfinal1(sm, "trans 1->final");
-    transition_test tfinal2(sm, "trans 2->final");
-    transition_test tfinal3(sm, "trans 3->final");
-    transition_test t12(sm, "trans 1->2");
-    transition_test t21(sm, "trans 2->1");
-    transition_test t23(sm, "trans 2->3");
-    transition_test t32(sm, "trans 3->2");
-    transition_test t13(sm, "trans 1->3");
-    transition_test t31(sm, "trans 3->1");
+    transition_test tinit1(rm, "trans init->1");
+    transition_test tinit2(rm, "trans init->2");
+    transition_test tinit3(rm, "trans init->3");
+    transition_test tfinal1(rm, "trans 1->final");
+    transition_test tfinal2(rm, "trans 2->final");
+    transition_test tfinal3(rm, "trans 3->final");
+    transition_test t12(rm, "trans 1->2");
+    transition_test t21(rm, "trans 2->1");
+    transition_test t23(rm, "trans 2->3");
+    transition_test t32(rm, "trans 3->2");
+    transition_test t13(rm, "trans 1->3");
+    transition_test t31(rm, "trans 3->1");
 
     t31.add_guard(guard_always_false);
     t13.add_action(action1);
@@ -115,7 +115,8 @@ void main_SM()
         case 9: ee = &e3final; break;
         }
         std::cout << "strike [" << i+1 << "] event: " << ee->id << std::endl << "<" << std::endl;
-        auto [rez_b, rem] = sm.release_event(*ee);
+        sm.rise_event(*ee);
+        auto [rez_b, rem] = sm.release_event();
         std::cout << "result: " << (rez_b ? "Success (" : "Error (") << rem << ")" << std::endl << ">" << std::endl << std::endl;
 
         if (!rez_b)

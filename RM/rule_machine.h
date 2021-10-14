@@ -23,31 +23,29 @@ namespace rm // rule machine
     class rule_machine;
 
     using id_t = int;
+    constexpr id_t id_undef_value = -1;
+
     using result_t = std::tuple <bool, std::string>;
     using ptr_action_t = void (*)(const event&);
     using ptr_guard_t = bool (*)(const event&);
 
     enum class status { enabled, disabled, paused };
 
-    struct IRule
+    struct IEventHandler
     {
-        virtual result_t rise_event(const event& ref_e, bool is_local = false) = 0;
-        virtual result_t rise_event(event&& rlv_e, bool is_local = false) = 0;
-        virtual result_t release_event(const event& ref_e) = 0;
+        virtual result_t rise_event(const event& ref_e) = 0;
+        virtual result_t rise_event(event&& rlv_e) = 0;
+        virtual result_t release_event() = 0;
+    };
+
+    struct IMachine
+    {
         virtual void set_status_enabled(const event& e) = 0;
         virtual void set_status_paused() = 0;
         virtual void set_status_disabled() = 0;
         virtual void clear() = 0;
+        virtual IEventHandler* get_event_handler() = 0;
     };
-
-
-    struct IRuleMachine
-    {
-        virtual result_t rise_event(const event& ref_e, const IRule* ptr_sm = nullptr) = 0;
-        virtual result_t rise_event(event&& rlv_e, const IRule* ptr_sm = nullptr) = 0;
-    };
-
-    using event_target_t = std::pair <event, const IRule*>; // no "const event"!
 
 
     /// event ///
@@ -84,7 +82,6 @@ namespace rm // rule machine
     class event final
     {
     public:
-        const id_t id_undef_value = -1;
         const id_t id = id_undef_value; // идентификатор
         const std::time_t time = std::time(nullptr); // время создания события
         const std::any param;
@@ -179,15 +176,15 @@ namespace rm // rule machine
         : public transition
     {
     protected:
-        IRule& riser;
+        IEventHandler& event_handler;
 
     protected:
         std::vector <ptr_action_t> actions;
         std::vector <ptr_guard_t> guards;
 
     public:
-        transition_vecs(IRule& riser_) :
-            riser(riser_)
+        transition_vecs(IEventHandler& event_handler_) :
+            event_handler(event_handler_)
         {
         }
 
@@ -240,8 +237,8 @@ namespace rm // rule machine
     public:
         transition_test() = delete;
 
-        transition_test(IRule& riser_, std::string name_) :
-            transition_vecs (riser_),
+        transition_test(IEventHandler& event_handler_, std::string name_) :
+            transition_vecs (event_handler_),
             name(name_)
         {
         }
@@ -352,15 +349,15 @@ namespace rm // rule machine
         : public state
     {
     protected:
-        IRule& riser;
+        IEventHandler& event_handler;
 
     protected:
         std::vector <ptr_action_t> entry_actions;
         std::vector <ptr_action_t> exit_actions;
 
     public:
-        state_vecs(IRule& riser_) :
-            riser(riser_)
+        state_vecs(IEventHandler& event_handler_) :
+            event_handler(event_handler_)
         {
         }
 
@@ -409,8 +406,8 @@ namespace rm // rule machine
     public:
         state_test() = delete;
 
-        state_test(IRule& riser_, std::string _name) :
-            state_vecs (riser_),
+        state_test(IEventHandler& event_handler_, std::string _name) :
+            state_vecs (event_handler_),
             name(_name)
         {
         }
@@ -443,12 +440,16 @@ namespace rm // rule machine
     /// state_machine
 
     class state_machine :
-        public IRule
+        public IEventHandler,
+        public IMachine
     {
         inline auto msg()
         {
             return sgt_messages <base_messages>::get_instance().msgs;
         }
+
+    private:
+        std::queue<event> event_queue;
 
     private:
         struct transit_to_state
@@ -460,8 +461,6 @@ namespace rm // rule machine
         using state_transitions_tab_t = std::map<state* /*source state*/, std::multimap<id_t /*event id*/, transit_to_state>>;
         state_transitions_tab_t state_transitions_tab;
 
-        IRuleMachine* rm_riser = nullptr;
-
         state* current_state_ptr = nullptr;
         initial_state* initial_state_ptr = nullptr;
         final_state* final_state_ptr = nullptr;
@@ -471,32 +470,42 @@ namespace rm // rule machine
     public:
         //const id_t id;
 
-        state_machine() = delete;
+        state_machine() = default;
 
-        state_machine(IRuleMachine* rm_riser_)
-            : rm_riser(rm_riser_)
+    public:
+        result_t rise_event(const event& ref_e) override // инициировать событие
         {
+            event_queue.push(ref_e);
+            return { true, msg().true_ok };
+        }
+
+        result_t rise_event(event&& rlv_e) override // инициировать событие
+        {
+            event_queue.emplace(std::move(rlv_e));
+            return { true, msg().true_ok };
         }
 
     public:
-        result_t rise_event(const event& ref_e, bool is_local) override // инициировать событие
+        IEventHandler* get_event_handler() override
         {
-            if (rm_riser)
-                return rm_riser->rise_event(ref_e, is_local ? this : nullptr); // что б избежать рекурсии, отправить в общую очередь, а не вызывать release_event
-
-            return { false, msg().false_riser_is_null };
-        }
-
-        result_t rise_event(event&& rlv_e, bool is_local) override // инициировать событие
-        {
-            if (rm_riser)
-                return rm_riser->rise_event(std::move(rlv_e), is_local ? this : nullptr); // что б избежать рекурсии, отправить в общую очередь, а не вызывать release_event
-
-            return { false, msg().false_riser_is_null };
+            return static_cast<IEventHandler*>(this);
         }
 
     public:
-        result_t release_event(const event& ref_e) override // реализовать событие
+        result_t release_event() override
+        {
+            while (!event_queue.empty())
+            {
+                event& e = event_queue.front();
+                inside_release_event(e);
+                event_queue.pop();
+            }
+
+            return { true, msg().true_ok };
+        }
+
+    protected:
+        result_t inside_release_event(const event& ref_e)  // реализовать событие
         {
             // return: success - true, error - false
 
@@ -535,7 +544,7 @@ namespace rm // rule machine
                         break;
                     }
             }
-            if (!ptr_transit_to_state)
+            if (!ptr_transit_to_state) // не найдены переходы по событию
                 return { true, msg().true_reject };
 
             if (!(ptr_transit_to_state->ptr_target_state))
@@ -698,7 +707,7 @@ namespace rm // rule machine
                 current_state_ptr = static_cast<state*>(initial_state_ptr);
                 initial_state_ptr->do_activate(e);
                 curr_status = status::enabled;
-                release_event(e);
+                rise_event(e);
                 break;
             }
         }
@@ -743,7 +752,8 @@ namespace rm // rule machine
     /// rule machine
 
     class rule_machine :
-        public IRuleMachine
+        public IEventHandler,
+        public IMachine
     {
         inline auto msg()
         {
@@ -751,44 +761,63 @@ namespace rm // rule machine
         }
 
     private:
-        std::queue<event_target_t> event_queue;
-        std::vector<IRule*> state_machines;
+        std::vector<IMachine*> inside_machines;
         status curr_status = status::disabled;
 
     public:
-        void add_sm(IRule* ptr_sm)
+        void add_machine(IMachine* ptr_m)
         {
-            state_machines.push_back(ptr_sm);
+            inside_machines.push_back(ptr_m);
         }
 
-        result_t rise_event(const event& ref_e, const IRule* ptr_sm = nullptr) override
+    public:
+        IEventHandler* get_event_handler() override
         {
-            event_queue.push(event_target_t{ ref_e, ptr_sm });
+            return static_cast<IEventHandler*>(this);
+        }
+
+        result_t rise_event(const event& ref_e) override
+        {
+            if (curr_status != status::enabled)
+                return { true, msg().true_ok };
+
+            for (IMachine* m : inside_machines)
+                if (m)
+                {
+                    IEventHandler* h = m -> get_event_handler();
+                    if (h)
+                        h -> rise_event(ref_e);
+                }
 
             return { true, msg().true_ok };
         }
 
-        result_t rise_event(event&& rlv_e, const IRule* ptr_sm = nullptr) override
+        result_t rise_event(event&& rlv_e) override
         {
-            event_queue.push(event_target_t{ std::move(rlv_e), ptr_sm });
+            if (curr_status != status::enabled)
+                return { true, msg().true_ok };
+
+            for (IMachine* m : inside_machines)
+                if (m)
+                {
+                    IEventHandler* h = m -> get_event_handler();
+                    if (h)
+                        h->rise_event(rlv_e);
+                        //h->rise_event(std::move(rlv_e));
+                }
 
             return { true, msg().true_ok };
         }
 
-        result_t release_events()
+        result_t release_event() override
         {
-            while (!event_queue.empty())
-            {
-                auto& [e, ptr_sm] = event_queue.front();
-                if (ptr_sm)
-                    const_cast<IRule*>(ptr_sm)->release_event(e);
-                else
-                    for (IRule* sm : state_machines)
-                        if (sm)
-                            sm->release_event(e);
-
-                event_queue.pop();
-            }
+            for (IMachine* m : inside_machines)
+                if (m)
+                {
+                    IEventHandler* h = m->get_event_handler();
+                    if (h)
+                        h->release_event();
+                }
 
             return { true, msg().true_ok };
         }
@@ -799,7 +828,7 @@ namespace rm // rule machine
         {
             return curr_status;
         }
-        void set_status_enabled() //const event& e)
+        void set_status_enabled(const event& e)
         {
             curr_status = status::enabled;
 
@@ -811,7 +840,7 @@ namespace rm // rule machine
         {
             curr_status = status::paused;
 
-            for (IRule* sm : state_machines)
+            for (IMachine* sm : inside_machines)
                 if (sm)
                     sm->set_status_paused();
         }
@@ -819,7 +848,7 @@ namespace rm // rule machine
         {
             curr_status = status::disabled;
 
-            for (IRule* sm : state_machines)
+            for (IMachine* sm : inside_machines)
                 if (sm)
                     sm->set_status_disabled();
         }
@@ -830,13 +859,13 @@ namespace rm // rule machine
         {
             set_status_disabled();
 
-            for (IRule* ptr_sm : state_machines)
+            for (IMachine* ptr_sm : inside_machines)
             {
                 if (ptr_sm)
                     ptr_sm->clear();
             }
 
-            state_machines.clear();
+            inside_machines.clear();
         }
     };
 }

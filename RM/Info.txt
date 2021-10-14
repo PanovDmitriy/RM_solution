@@ -17,6 +17,16 @@ Pseudostate:
 
 ------------------------
 
+DOM -> RM::RiseEvent(event)
+RM::RiseEvent(event) -> RM::RuleList::RiseEvent(event)
+SM::RiseEvent(event) -> AddToQueue(event)
+
+DOM::MainLoop -> RM::ReleaseEvent()
+RM::ReleaseEvent() -> RM::RuleList::ReleaseEvent()
+SM::ReleaseEvent() -> SM::EventQueue::InsideReleaseEvent(event)
+
+--------------------------
+
 transition: source state (исходное состо€ние), trigger (переключающее событие), guard condition, target state (целевое состо€ние)
 trigger (переключающее событие)
 
