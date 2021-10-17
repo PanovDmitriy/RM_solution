@@ -9,6 +9,7 @@
 #include <iostream>
 #include <ctime>
 #include <any>
+#include <memory>
 #include "rm_messages.h"
 
 
@@ -16,7 +17,7 @@
 
 namespace rm // rule machine
 {
-    constexpr bool is_event_log = false;
+    constexpr bool is_event_log = true;
 
     class event;
     class state_machine;
@@ -24,6 +25,8 @@ namespace rm // rule machine
 
     using id_t = int;
     constexpr id_t id_undef_value = -1;
+
+    using shared_event = std::shared_ptr<event>;
 
     using result_t = std::tuple <bool, std::string>;
     using ptr_action_t = void (*)(const event&);
@@ -35,6 +38,7 @@ namespace rm // rule machine
     {
         virtual result_t rise_event(const event& ref_e) = 0;
         virtual result_t rise_event(event&& rlv_e) = 0;
+        virtual result_t rise_event(shared_event& she_e) = 0;
         virtual result_t release_event() = 0;
     };
 
@@ -449,7 +453,8 @@ namespace rm // rule machine
         }
 
     private:
-        std::queue<event> event_queue;
+        //std::queue<event> event_queue;
+        std::queue<std::variant<event, shared_event>> event_queue;
 
     private:
         struct transit_to_state
@@ -483,6 +488,11 @@ namespace rm // rule machine
         {
             event_queue.emplace(std::move(rlv_e));
             return { true, msg().true_ok };
+        }
+
+        result_t rise_event(shared_event& she_e) override
+        {
+            std::variant 
         }
 
     public:
