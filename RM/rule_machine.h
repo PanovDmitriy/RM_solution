@@ -38,7 +38,7 @@ namespace rm // rule machine
     {
         virtual result_t rise_event(const event& ref_e) = 0;
         virtual result_t rise_event(event&& rlv_e) = 0;
-        virtual result_t rise_event(shared_event& she_e) = 0;
+        virtual result_t rise_event(const shared_event& she_e) = 0;
         virtual result_t release_event() = 0;
     };
 
@@ -454,7 +454,7 @@ namespace rm // rule machine
 
     private:
         //std::queue<event> event_queue;
-        std::queue<std::variant<event, shared_event>> event_queue;
+        std::queue<shared_event> event_queue;
 
     private:
         struct transit_to_state
@@ -480,19 +480,20 @@ namespace rm // rule machine
     public:
         result_t rise_event(const event& ref_e) override // инициировать событие
         {
-            event_queue.push(ref_e);
+            event_queue.emplace(std::make_shared<event>(ref_e));
             return { true, msg().true_ok };
         }
 
         result_t rise_event(event&& rlv_e) override // инициировать событие
         {
-            event_queue.emplace(std::move(rlv_e));
+            event_queue.emplace(std::make_shared<event>(std::move(rlv_e)));
             return { true, msg().true_ok };
         }
 
-        result_t rise_event(shared_event& she_e) override
+        result_t rise_event(const shared_event& she_e) override
         {
-            std::variant 
+            event_queue.emplace(shared_event(she_e));
+            return { true, msg().true_ok };
         }
 
     public:
@@ -506,8 +507,8 @@ namespace rm // rule machine
         {
             while (!event_queue.empty())
             {
-                event& e = event_queue.front();
-                inside_release_event(e);
+                shared_event& se = event_queue.front();
+                inside_release_event(*se);
                 event_queue.pop();
             }
 
@@ -807,13 +808,30 @@ namespace rm // rule machine
             if (curr_status != status::enabled)
                 return { true, msg().true_ok };
 
+            shared_event se = std::make_shared<event>(std::move(rlv_e));
+
             for (IMachine* m : inside_machines)
                 if (m)
                 {
                     IEventHandler* h = m -> get_event_handler();
                     if (h)
-                        h->rise_event(rlv_e);
-                        //h->rise_event(std::move(rlv_e));
+                        h->rise_event(se);
+                }
+
+            return { true, msg().true_ok };
+        }
+
+        result_t rise_event(const shared_event& she_e) override
+        {
+            if (curr_status != status::enabled)
+                return { true, msg().true_ok };
+
+            for (IMachine* m : inside_machines)
+                if (m)
+                {
+                    IEventHandler* h = m->get_event_handler();
+                    if (h)
+                        h->rise_event(she_e);
                 }
 
             return { true, msg().true_ok };
