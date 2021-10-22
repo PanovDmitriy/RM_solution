@@ -17,7 +17,7 @@
 
 namespace rm // rule machine
 {
-    constexpr bool is_event_log = true;
+    constexpr bool is_event_log = false;
 
     class event;
     class state_machine;

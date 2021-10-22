@@ -45,6 +45,8 @@ struct test_param
 };
 
 
+constexpr bool is_test_cardset = false;
+
 
 
 class state_turn_player :
@@ -110,6 +112,7 @@ public:
     card_set sc_player2;
 
     int turn_n = 1;
+    const int max_turn = std::numeric_limits<int>::max() - 1;
 
 public:
     rule_machine rm;
@@ -138,6 +141,12 @@ public:
 
     bool bit()
     {
+        if (turn_n == max_turn)
+        {
+            std::cout << "BREAK! MAX TURN = " << max_turn << std::endl;
+            return false;
+        }
+
         if (sm_players.get_status() == status::enabled && sm_play.get_status() == status::enabled)
         {
             rm.release_event();
@@ -290,76 +299,81 @@ void state_turn_player::do_entry_action(const event& ref_e)
 void state_pre_play::do_entry_action(const event& ref_e)
 {
     //  раздать карты
-    //dom->reset();
-    //dom->sc_table.shuffle();
-    ////dom->sc_table.shuffle();
-    ////dom->sc_table.shuffle();
-    ////dom->sc_table.shuffle();
-    //while (true)
-    //{
-    //    if (!dom->sc_table.move_card_f2f(dom->sc_player1))
-    //        break;
-    //    if (!dom->sc_table.move_card_f2f(dom->sc_player2))
-    //        break;
-    //}
+    if constexpr (!is_test_cardset)
+    {
+        ptr_dom->reset();
+        ptr_dom->sc_table.shuffle();
+        ptr_dom->sc_table.shuffle();
+        ptr_dom->sc_table.shuffle();
+        ptr_dom->sc_table.shuffle();
+        while (true)
+        {
+            if (!ptr_dom->sc_table.move_card_first2first(ptr_dom->sc_player1))
+                break;
+            if (!ptr_dom->sc_table.move_card_first2first(ptr_dom->sc_player2))
+                break;
+        }
+    }
+    else
+    {
+        ptr_dom->sc_table.clear();
+        ptr_dom->sc_player1.clear();
+        ptr_dom->sc_player2.clear();
 
-    ptr_dom->sc_table.clear();
-    ptr_dom->sc_player1.clear();
-    ptr_dom->sc_player2.clear();
+        ptr_dom->sc_player1.add_card_back(card(e_card_suit::Spade, e_card_num::Q));
+        ptr_dom->sc_player1.add_card_back(card(e_card_suit::Heart, e_card_num::n4));
+        ptr_dom->sc_player1.add_card_back(card(e_card_suit::Heart, e_card_num::n9));
+        ptr_dom->sc_player1.add_card_back(card(e_card_suit::Heart, e_card_num::Q));
+        ptr_dom->sc_player1.add_card_back(card(e_card_suit::Club, e_card_num::K));
+        ptr_dom->sc_player1.add_card_back(card(e_card_suit::Club, e_card_num::J));
+        ptr_dom->sc_player1.add_card_back(card(e_card_suit::Spade, e_card_num::n2));
+        ptr_dom->sc_player1.add_card_back(card(e_card_suit::Club, e_card_num::n8));
+        ptr_dom->sc_player1.add_card_back(card(e_card_suit::Club, e_card_num::n9));
+        ptr_dom->sc_player1.add_card_back(card(e_card_suit::Diamond, e_card_num::n4));
+        ptr_dom->sc_player1.add_card_back(card(e_card_suit::Heart, e_card_num::n6));
+        ptr_dom->sc_player1.add_card_back(card(e_card_suit::Club, e_card_num::n10));
+        ptr_dom->sc_player1.add_card_back(card(e_card_suit::Club, e_card_num::A));
+        ptr_dom->sc_player1.add_card_back(card(e_card_suit::Spade, e_card_num::n8));
+        ptr_dom->sc_player1.add_card_back(card(e_card_suit::Club, e_card_num::n4));
+        ptr_dom->sc_player1.add_card_back(card(e_card_suit::Diamond, e_card_num::J));
+        ptr_dom->sc_player1.add_card_back(card(e_card_suit::Heart, e_card_num::n7));
+        ptr_dom->sc_player1.add_card_back(card(e_card_suit::Diamond, e_card_num::A));
+        ptr_dom->sc_player1.add_card_back(card(e_card_suit::Heart, e_card_num::n3));
+        ptr_dom->sc_player1.add_card_back(card(e_card_suit::Club, e_card_num::n3));
+        ptr_dom->sc_player1.add_card_back(card(e_card_suit::Diamond, e_card_num::K));
+        ptr_dom->sc_player1.add_card_back(card(e_card_suit::Spade, e_card_num::n5));
+        ptr_dom->sc_player1.add_card_back(card(e_card_suit::Spade, e_card_num::J));
+        ptr_dom->sc_player1.add_card_back(card(e_card_suit::Spade, e_card_num::K));
+        ptr_dom->sc_player1.add_card_back(card(e_card_suit::Spade, e_card_num::n10));
+        ptr_dom->sc_player1.add_card_back(card(e_card_suit::Spade, e_card_num::n3));
 
-    ptr_dom->sc_player1.add_card_back(card(e_card_suit::Spade, e_card_num::Q));
-    ptr_dom->sc_player1.add_card_back(card(e_card_suit::Heart, e_card_num::n4));
-    ptr_dom->sc_player1.add_card_back(card(e_card_suit::Heart, e_card_num::n9));
-    ptr_dom->sc_player1.add_card_back(card(e_card_suit::Heart, e_card_num::Q));
-    ptr_dom->sc_player1.add_card_back(card(e_card_suit::Club, e_card_num::K));
-    ptr_dom->sc_player1.add_card_back(card(e_card_suit::Club, e_card_num::J));
-    ptr_dom->sc_player1.add_card_back(card(e_card_suit::Spade, e_card_num::n2));
-    ptr_dom->sc_player1.add_card_back(card(e_card_suit::Club, e_card_num::n8));
-    ptr_dom->sc_player1.add_card_back(card(e_card_suit::Club, e_card_num::n9));
-    ptr_dom->sc_player1.add_card_back(card(e_card_suit::Diamond, e_card_num::n4));
-    ptr_dom->sc_player1.add_card_back(card(e_card_suit::Heart, e_card_num::n6));
-    ptr_dom->sc_player1.add_card_back(card(e_card_suit::Club, e_card_num::n10));
-    ptr_dom->sc_player1.add_card_back(card(e_card_suit::Club, e_card_num::A));
-    ptr_dom->sc_player1.add_card_back(card(e_card_suit::Spade, e_card_num::n8));
-    ptr_dom->sc_player1.add_card_back(card(e_card_suit::Club, e_card_num::n4));
-    ptr_dom->sc_player1.add_card_back(card(e_card_suit::Diamond, e_card_num::J));
-    ptr_dom->sc_player1.add_card_back(card(e_card_suit::Heart, e_card_num::n7));
-    ptr_dom->sc_player1.add_card_back(card(e_card_suit::Diamond, e_card_num::A));
-    ptr_dom->sc_player1.add_card_back(card(e_card_suit::Heart, e_card_num::n3));
-    ptr_dom->sc_player1.add_card_back(card(e_card_suit::Club, e_card_num::n3));
-    ptr_dom->sc_player1.add_card_back(card(e_card_suit::Diamond, e_card_num::K));
-    ptr_dom->sc_player1.add_card_back(card(e_card_suit::Spade, e_card_num::n5));
-    ptr_dom->sc_player1.add_card_back(card(e_card_suit::Spade, e_card_num::J));
-    ptr_dom->sc_player1.add_card_back(card(e_card_suit::Spade, e_card_num::K));
-    ptr_dom->sc_player1.add_card_back(card(e_card_suit::Spade, e_card_num::n10));
-    ptr_dom->sc_player1.add_card_back(card(e_card_suit::Spade, e_card_num::n3));
-
-    ptr_dom->sc_player2.add_card_back(card(e_card_suit::Club, e_card_num::Q));
-    ptr_dom->sc_player2.add_card_back(card(e_card_suit::Spade, e_card_num::A));
-    ptr_dom->sc_player2.add_card_back(card(e_card_suit::Diamond, e_card_num::n7));
-    ptr_dom->sc_player2.add_card_back(card(e_card_suit::Spade, e_card_num::n4));
-    ptr_dom->sc_player2.add_card_back(card(e_card_suit::Club, e_card_num::n6));
-    ptr_dom->sc_player2.add_card_back(card(e_card_suit::Spade, e_card_num::n9));
-    ptr_dom->sc_player2.add_card_back(card(e_card_suit::Heart, e_card_num::K));
-    ptr_dom->sc_player2.add_card_back(card(e_card_suit::Heart, e_card_num::n2));
-    ptr_dom->sc_player2.add_card_back(card(e_card_suit::Heart, e_card_num::n5));
-    ptr_dom->sc_player2.add_card_back(card(e_card_suit::Diamond, e_card_num::n10));
-    ptr_dom->sc_player2.add_card_back(card(e_card_suit::Diamond, e_card_num::n3));
-    ptr_dom->sc_player2.add_card_back(card(e_card_suit::Diamond, e_card_num::Q));
-    ptr_dom->sc_player2.add_card_back(card(e_card_suit::Diamond, e_card_num::n9));
-    ptr_dom->sc_player2.add_card_back(card(e_card_suit::Club, e_card_num::n5));
-    ptr_dom->sc_player2.add_card_back(card(e_card_suit::Club, e_card_num::n7));
-    ptr_dom->sc_player2.add_card_back(card(e_card_suit::Heart, e_card_num::n10));
-    ptr_dom->sc_player2.add_card_back(card(e_card_suit::Heart, e_card_num::J));
-    ptr_dom->sc_player2.add_card_back(card(e_card_suit::Club, e_card_num::n2));
-    ptr_dom->sc_player2.add_card_back(card(e_card_suit::Spade, e_card_num::n6));
-    ptr_dom->sc_player2.add_card_back(card(e_card_suit::Spade, e_card_num::n7));
-    ptr_dom->sc_player2.add_card_back(card(e_card_suit::Diamond, e_card_num::n2));
-    ptr_dom->sc_player2.add_card_back(card(e_card_suit::Diamond, e_card_num::n6));
-    ptr_dom->sc_player2.add_card_back(card(e_card_suit::Heart, e_card_num::n8));
-    ptr_dom->sc_player2.add_card_back(card(e_card_suit::Diamond, e_card_num::n5));
-    ptr_dom->sc_player2.add_card_back(card(e_card_suit::Diamond, e_card_num::n8));
-    ptr_dom->sc_player2.add_card_back(card(e_card_suit::Heart, e_card_num::A));
+        ptr_dom->sc_player2.add_card_back(card(e_card_suit::Club, e_card_num::Q));
+        ptr_dom->sc_player2.add_card_back(card(e_card_suit::Spade, e_card_num::A));
+        ptr_dom->sc_player2.add_card_back(card(e_card_suit::Diamond, e_card_num::n7));
+        ptr_dom->sc_player2.add_card_back(card(e_card_suit::Spade, e_card_num::n4));
+        ptr_dom->sc_player2.add_card_back(card(e_card_suit::Club, e_card_num::n6));
+        ptr_dom->sc_player2.add_card_back(card(e_card_suit::Spade, e_card_num::n9));
+        ptr_dom->sc_player2.add_card_back(card(e_card_suit::Heart, e_card_num::K));
+        ptr_dom->sc_player2.add_card_back(card(e_card_suit::Heart, e_card_num::n2));
+        ptr_dom->sc_player2.add_card_back(card(e_card_suit::Heart, e_card_num::n5));
+        ptr_dom->sc_player2.add_card_back(card(e_card_suit::Diamond, e_card_num::n10));
+        ptr_dom->sc_player2.add_card_back(card(e_card_suit::Diamond, e_card_num::n3));
+        ptr_dom->sc_player2.add_card_back(card(e_card_suit::Diamond, e_card_num::Q));
+        ptr_dom->sc_player2.add_card_back(card(e_card_suit::Diamond, e_card_num::n9));
+        ptr_dom->sc_player2.add_card_back(card(e_card_suit::Club, e_card_num::n5));
+        ptr_dom->sc_player2.add_card_back(card(e_card_suit::Club, e_card_num::n7));
+        ptr_dom->sc_player2.add_card_back(card(e_card_suit::Heart, e_card_num::n10));
+        ptr_dom->sc_player2.add_card_back(card(e_card_suit::Heart, e_card_num::J));
+        ptr_dom->sc_player2.add_card_back(card(e_card_suit::Club, e_card_num::n2));
+        ptr_dom->sc_player2.add_card_back(card(e_card_suit::Spade, e_card_num::n6));
+        ptr_dom->sc_player2.add_card_back(card(e_card_suit::Spade, e_card_num::n7));
+        ptr_dom->sc_player2.add_card_back(card(e_card_suit::Diamond, e_card_num::n2));
+        ptr_dom->sc_player2.add_card_back(card(e_card_suit::Diamond, e_card_num::n6));
+        ptr_dom->sc_player2.add_card_back(card(e_card_suit::Heart, e_card_num::n8));
+        ptr_dom->sc_player2.add_card_back(card(e_card_suit::Diamond, e_card_num::n5));
+        ptr_dom->sc_player2.add_card_back(card(e_card_suit::Diamond, e_card_num::n8));
+        ptr_dom->sc_player2.add_card_back(card(e_card_suit::Heart, e_card_num::A));
+    }
 
     ptr_dom->sc_player1.show("player 1 cards");
     ptr_dom->sc_player2.show("player 2 cards");
