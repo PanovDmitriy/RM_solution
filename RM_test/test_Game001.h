@@ -4,6 +4,8 @@
 #include "play_cards.h"
 #include <algorithm>
 
+constexpr bool is_test_cardset = true;
+
 using namespace rm;
 
 
@@ -43,10 +45,6 @@ struct test_param
         int val = -1;
     }
 };
-
-
-constexpr bool is_test_cardset = false;
-
 
 
 class state_turn_player :
