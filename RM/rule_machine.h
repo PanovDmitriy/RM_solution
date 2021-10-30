@@ -36,17 +36,21 @@ namespace rm // rule machine
 
     struct IEventHandler
     {
-        virtual result_t rise_event(const event& ref_e) = 0;
-        virtual result_t rise_event(event&& rlv_e) = 0;
-        virtual result_t rise_event(const shared_event& she_e) = 0;
+        virtual result_t rise_event(const event&) = 0;
+        virtual result_t rise_event(event&&) = 0;
+        virtual result_t rise_event(const shared_event&) = 0;
         virtual result_t release_event() = 0;
     };
 
     struct IMachine
     {
-        virtual void set_status_enabled(const event& e) = 0;
+        virtual void set_status_enabled() = 0;
+        virtual void set_status_enabled(event&&) = 0;
+        virtual void set_status_enabled(const event&) = 0;
+        virtual void set_status_enabled(const shared_event&) = 0;
         virtual void set_status_paused() = 0;
         virtual void set_status_disabled() = 0;
+        virtual status get_status() = 0;
         virtual void clear() = 0;
         virtual IEventHandler* get_event_handler() = 0;
     };
@@ -453,7 +457,6 @@ namespace rm // rule machine
         }
 
     private:
-        //std::queue<event> event_queue;
         std::queue<shared_event> event_queue;
 
     private:
@@ -490,9 +493,9 @@ namespace rm // rule machine
             return { true, msg().true_ok };
         }
 
-        result_t rise_event(const shared_event& she_e) override
+        result_t rise_event(const shared_event& ref_she) override
         {
-            event_queue.emplace(shared_event(she_e));
+            event_queue.emplace(shared_event(ref_she));
             return { true, msg().true_ok };
         }
 
@@ -700,25 +703,73 @@ namespace rm // rule machine
         }
 
         // + control methods sm
-        status get_status()
+        status get_status() override
         {
             return curr_status;
         }
 
-        void set_status_enabled(const event& e) override
+        void set_status_enabled() override
         {
             switch (curr_status)
             {
             case status::enabled:
                 break;
+            case status::disabled:
+                current_state_ptr = static_cast<state*>(initial_state_ptr);
+                [[fallthrough]];
             case status::paused:
                 curr_status = status::enabled;
                 break;
+            }
+        }
+
+        void set_status_enabled(event&& rvl_e) override
+        {
+            switch (curr_status)
+            {
+            case status::enabled:
+                break;
             case status::disabled:
                 current_state_ptr = static_cast<state*>(initial_state_ptr);
-                initial_state_ptr->do_activate(e);
+                initial_state_ptr->do_activate(rvl_e); // for debug only. init_state.do_activate is clear
+                [[fallthrough]];
+            case status::paused:
                 curr_status = status::enabled;
-                rise_event(e);
+                rise_event(std::move(rvl_e));
+                break;
+            }
+        }
+        
+        void set_status_enabled(const event& ref_e) override
+        {
+            switch (curr_status)
+            {
+            case status::enabled:
+                break;
+            case status::disabled:
+                current_state_ptr = static_cast<state*>(initial_state_ptr);
+                initial_state_ptr->do_activate(ref_e); // for debug only. init_state.do_activate is clear
+                [[fallthrough]];
+            case status::paused:
+                curr_status = status::enabled;
+                rise_event(ref_e);
+                break;
+            }
+        }
+
+        void set_status_enabled(const shared_event& ref_she) override
+        {
+            switch (curr_status)
+            {
+            case status::enabled:
+                break;
+            case status::disabled:
+                current_state_ptr = static_cast<state*>(initial_state_ptr);
+                initial_state_ptr->do_activate(*ref_she); // for debug only. init_state.do_activate is clear
+                [[fallthrough]];
+            case status::paused:
+                curr_status = status::enabled;
+                rise_event(ref_she);
                 break;
             }
         }
@@ -738,17 +789,7 @@ namespace rm // rule machine
 
         void set_status_disabled() override
         {
-            switch (curr_status)
-            {
-            case status::enabled:
-                curr_status = status::disabled;
-                break;
-            case status::paused:
-                curr_status = status::disabled;
-                break;
-            case status::disabled:
-                break;
-            }
+            curr_status = status::disabled;
         }
         // - control methods sm
 
@@ -821,7 +862,7 @@ namespace rm // rule machine
             return { true, msg().true_ok };
         }
 
-        result_t rise_event(const shared_event& she_e) override
+        result_t rise_event(const shared_event& ref_she) override
         {
             if (curr_status != status::enabled)
                 return { true, msg().true_ok };
@@ -831,7 +872,7 @@ namespace rm // rule machine
                 {
                     IEventHandler* h = m->get_event_handler();
                     if (h)
-                        h->rise_event(she_e);
+                        h->rise_event(ref_she);
                 }
 
             return { true, msg().true_ok };
@@ -852,19 +893,48 @@ namespace rm // rule machine
 
     public:
         // + control methods sm
-        status get_status()
+        status get_status() override
         {
             return curr_status;
         }
-        void set_status_enabled(const event& e)
+
+        void set_status_enabled() override
         {
             curr_status = status::enabled;
 
-            //for (state_machine* sm : sms)
-            //    if (sm)
-            //        sm->set_status_enabled(e); // переделать! каждый автомат запускается своим событием!
+            for (IMachine* sm : inside_machines)
+                if (sm)
+                    sm->set_status_enabled();
         }
-        void set_status_paused()
+        
+        void set_status_enabled(event&& rvl_e) override
+        {
+            curr_status = status::enabled;
+
+            for (IMachine* sm : inside_machines)
+                if (sm)
+                    sm->set_status_enabled(rvl_e);
+        }
+        
+        void set_status_enabled(const shared_event& ref_she) override
+        {
+            curr_status = status::enabled;
+
+            for (IMachine* sm : inside_machines)
+                if (sm)
+                    sm->set_status_enabled(ref_she);
+        }
+        
+        void set_status_enabled(const event& ref_e) override
+        {
+            curr_status = status::enabled;
+
+            for (IMachine* sm : inside_machines)
+                if (sm)
+                    sm->set_status_enabled(ref_e);
+        }
+
+        void set_status_paused() override
         {
             curr_status = status::paused;
 
@@ -872,7 +942,8 @@ namespace rm // rule machine
                 if (sm)
                     sm->set_status_paused();
         }
-        void set_status_disabled()
+
+        void set_status_disabled() override
         {
             curr_status = status::disabled;
 
@@ -883,7 +954,7 @@ namespace rm // rule machine
         // - control methods sm
 
     public:
-        void clear()
+        void clear() override
         {
             set_status_disabled();
 
