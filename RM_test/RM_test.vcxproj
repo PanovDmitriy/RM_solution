@@ -24,6 +24,7 @@
     <ProjectGuid>{03cdc83d-fdf1-4911-936f-34bdaf80850c}</ProjectGuid>
     <RootNamespace>RMtest</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>RM_sample</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -143,12 +144,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="RM_test.cpp" />
+    <ClCompile Include="RM_sample.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="play_cards.h" />
-    <ClInclude Include="test_Game001.h" />
-    <ClInclude Include="test_SM.h" />
+    <ClInclude Include="Game001_sample.h" />
+    <ClInclude Include="SM_sample.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Пьяница.vsdx" />

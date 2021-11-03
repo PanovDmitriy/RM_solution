@@ -10,8 +10,8 @@
 #include <algorithm>
 #include <chrono>
 
-#include "test_Game001.h"
-#include "test_SM.h"
+#include "Game001_sample.h"
+#include "SM_sample.h"
 
 
 using namespace rm;
