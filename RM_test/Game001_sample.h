@@ -118,16 +118,11 @@ protected:
             {
                 gamer_id = std::any_cast<int>(ref_e.param);
             }
-            catch (const std::bad_any_cast& e)
+            catch (const std::bad_any_cast&)
             {
             }
 
-            std::cout << "Победитель: ";
-            if (gamer_id == -1)
-                std::cout << "???";
-            else
-                std::cout << gamer_id;
-            std::cout << std::endl;
+            std::cout << "Победитель: player" << ((gamer_id == -1) ? "?" : std::to_string(gamer_id)) << std::endl;
         }
     }
 
