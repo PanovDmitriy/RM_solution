@@ -102,6 +102,48 @@ protected:
 
 };
 
+class transition_game_over
+    : public transition
+{
+private:
+    id_t no_card_id_ = -1;
+
+protected:
+    void get_winner(const event& ref_e)
+    {
+        if (ref_e.id == no_card_id_ && no_card_id_ >= 0)
+        {
+            int gamer_id = -1;
+            try
+            {
+                gamer_id = std::any_cast<int>(ref_e.param);
+            }
+            catch (const std::bad_any_cast& e)
+            {
+            }
+
+            std::cout << "Победитель: ";
+            if (gamer_id == -1)
+                std::cout << "???";
+            else
+                std::cout << gamer_id;
+            std::cout << std::endl;
+        }
+    }
+
+public:
+    void set_no_card_id(id_t e_no_card_id)
+    {
+        no_card_id_ = e_no_card_id;
+    }
+
+    void do_action(const event& ref_e) override
+    {
+        get_winner(ref_e);
+    }
+
+};
+
 class DOM
 {
 public:
@@ -127,6 +169,8 @@ public:
     state st_await_play_start;
     state_pre_play st_preplay;
     state_turn_play st_turn_play;
+
+    transition_game_over tr_game_over;
 
 public:
     DOM() :
@@ -189,6 +233,8 @@ void DOM::init()
     st_preplay.set_dom(this);
     st_turn_play.set_dom(this);
 
+    tr_game_over.set_no_card_id(no_card_id);
+
     rm.add_machine(&sm_players);
     rm.add_machine(&sm_play);
 
@@ -201,7 +247,7 @@ void DOM::init()
     sm_play.add_event_state_state_transition(start_play_id, &st_await_play_start, &st_preplay);
     sm_play.add_event_state_state_transition(card_on_table_id, &st_preplay, &st_turn_play);
     sm_play.add_event_state_state_transition(card_on_table_id, &st_turn_play, &st_turn_play);
-    sm_play.add_event_state_state_transition(no_card_id, &st_turn_play, &st_final_play);
+    sm_play.add_event_state_state_transition(no_card_id, &st_turn_play, &st_final_play, &tr_game_over);
 
     auto [sm_players_cib, sm_players_cis] = sm_players.check_integrity();
     auto [sm_play_cib, sm_play_cis] = sm_play.check_integrity();

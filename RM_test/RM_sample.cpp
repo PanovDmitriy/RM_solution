@@ -13,8 +13,8 @@
 #include "Game001_sample.h"
 #include "SM_sample.h"
 
-
 using namespace rm;
+
 
 
 int main()
@@ -36,6 +36,10 @@ int main()
     //smx.rise_event(std::move(e1), true);
     //smx.rise_event(std::move(e2), true);
     //smx.rise_event({3}, true);
+
+    std::cout << "\n\n\nenter char: ";
+    char c = 0;
+    std::cin >> c;
 
     return 0;
 }
