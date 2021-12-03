@@ -2,6 +2,6 @@
 Моделирование поведения через использование конечных автоматов. Множество автоматов описывают множество аспектов поведения сущностей предметной области. 
 Rule-machine (RM) - машина правил
 
-RM - Main project: Rule machine, State machine, Events, Messages
+project RM - Main project: Machines interface, Rule machine, State machine, Events
 
-RM_test - sample
+project RM_test - card game sample
