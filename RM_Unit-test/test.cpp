@@ -7,7 +7,7 @@
 TEST(TestCaseName, TestName) 
 {
   EXPECT_EQ(1, 1);
-  EXPECT_TRUE(false);
+  EXPECT_TRUE(true);
 
   ::testing::StaticAssertTypeEq<int, int>();
 }
