@@ -41,6 +41,7 @@ enum class e_card_mark
 
 enum class e_card_set_type
 {
+    custom,
     t54,
     t52,
     t36
@@ -151,15 +152,60 @@ struct card
 class card_set
 {
 public:
-    const e_card_set_type type;
+    const e_card_set_type type = e_card_set_type::custom;
 
 protected:
     std::list<card> cards;
 
 public:
+    card_set() :
+        type(e_card_set_type::custom)
+    {
+    }
     card_set(const e_card_set_type type_) :
         type(type_)
     {
+    }
+    card_set(const card_set& cs) : 
+        type (cs.type),
+        cards (cs.cards)
+    {
+    }
+    card_set(card_set&& cs) noexcept :
+        type(cs.type)
+    {
+        cards.swap(cs.cards);
+        cs.cards.clear();
+    }
+    card_set(const std::initializer_list<card>& list) :
+        type (e_card_set_type::custom)
+    {
+        for (auto& c : list)
+            cards.push_back(c);
+    }
+
+
+    card_set& operator= (const card_set& ref_cs)
+    {
+        const_cast<e_card_set_type&>(type) = ref_cs.type;
+        cards = ref_cs.cards;
+        return *this;
+    }
+    card_set& operator= (card_set&& rvl_cs) noexcept
+    {
+        const_cast<e_card_set_type&>(type) = rvl_cs.type;
+        cards.swap(rvl_cs.cards);
+        rvl_cs.cards.clear ();
+        return *this;
+    }
+
+
+    void swap(card_set& cs)
+    {
+        cards.swap(cs.cards);
+        e_card_set_type t = cs.type;
+        const_cast<e_card_set_type&>(cs.type) = type;
+        const_cast<e_card_set_type&>(type) = t;
     }
 
     void reset()
@@ -172,6 +218,8 @@ public:
         int n_end = -1;
         switch (type)
         {
+        case e_card_set_type::custom:
+            return;
         case e_card_set_type::t36:
             s_begin = static_cast<int>(e_card_suit::Club);
             s_end = static_cast<int>(e_card_suit::Diamond);
@@ -199,6 +247,8 @@ public:
     {
         switch (type)
         {
+        case e_card_set_type::custom:
+            return true;
         case e_card_set_type::t36:
             if (const auto ptr_sn = std::get_if<s_card_suitnum>(&c.c); ptr_sn)
             {
@@ -230,14 +280,22 @@ public:
         return false;
     }
 
-    void add_card_back(card&& c)
+    void push_last(card&& c)
     {
-        cards.emplace_back(c);
+        cards.emplace_back(std::move(c));
     }
-
-    void add_card_back(card& c)
+    void push_last(card& c)
     {
         cards.push_back(c);
+    }
+
+    void push_first(card&& c)
+    {
+        cards.emplace_front(std::move(c));
+    }
+    void push_first(card& c)
+    {
+        cards.push_front(c);
     }
 
     bool move_card_first2back(card_set& to_card_set) // first to back
@@ -287,14 +345,14 @@ public:
         return cards.front();
     }
 
-    card move_card_first() // first
+    card pop_first() // first
     {
         card c = cards.front();
         cards.pop_front();
         return c;
     }
 
-    card move_card_back() // back
+    card pop_last() // back
     {
         card c = cards.back();
         cards.pop_back();
