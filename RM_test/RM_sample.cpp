@@ -27,7 +27,6 @@ int main()
 
     main_Game001();
 
-
     //test_param tp;
     //event e1(1);//, tp);
     //event e2(2, test_param {});
@@ -37,9 +36,9 @@ int main()
     //smx.rise_event(std::move(e2), true);
     //smx.rise_event({3}, true);
 
-    std::cout << "\n\n\nenter char: ";
-    char c = 0;
-    std::cin >> c;
+    //std::cout << "\n\n\nenter char: ";
+    //char c = 0;
+    //std::cin >> c;
 
     return 0;
 }

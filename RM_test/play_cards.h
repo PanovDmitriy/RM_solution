@@ -38,6 +38,10 @@ enum class e_card_mark
 {
     Joker = 0
 };
+enum class e_card_null
+{
+    Null = 0
+};
 
 enum class e_card_set_type
 {
@@ -47,7 +51,7 @@ enum class e_card_set_type
     t36
 };
 
-struct card_name // f() list for std::variant + std::visit
+struct card_name_en // f() list for std::variant + std::visit
 {
     std::string operator()(const s_card_suitnum& sm)
     {
@@ -88,18 +92,48 @@ struct card_name // f() list for std::variant + std::visit
 
         return "";
     }
+
+    std::string operator()(const e_card_null& v)
+    {
+        switch (v)
+        {
+        case e_card_null::Null: return "Null";
+        }
+
+        return "";
+    }
 };
 
 struct card
 {
-    using card_variant_t = std::variant<s_card_suitnum, e_card_mark>;
+    using card_variant_t = std::variant<s_card_suitnum, e_card_mark, e_card_null>;
 
-    const card_variant_t c;
+    const card_variant_t c = e_card_null::Null;
 
-    card() = delete;
-    card(const card& c_) : c(c_.c) {}
-    card(const e_card_mark m_) : c(m_) {}
-    card(const s_card_suitnum sn_) : c(sn_) {}
+    card()
+    {
+    }
+    card(const card& c_) :
+        c(c_.c) 
+    {
+    }
+    card(card&& c_) noexcept : 
+        c(c_.c) 
+    {
+        const_cast<card_variant_t&>(c_.c) = e_card_null::Null;
+    }
+    card(const e_card_null n_) :
+        c(n_)
+    {
+    }
+    card(const e_card_mark m_) :
+        c(m_)
+    {
+    }
+    card(const s_card_suitnum sn_) :
+        c(sn_) 
+    {
+    }
     card(const e_card_suit suit_, const e_card_num number_) :
         c(s_card_suitnum(suit_, number_))
     {
@@ -107,12 +141,17 @@ struct card
 
     std::string get_name()
     {
-        return std::visit(card_name{}, c);
+        return std::visit(card_name_en{}, c);
     }
 
     card& operator= (const card& ref_c)
     {
         const_cast<card_variant_t&>(c) = ref_c.c;
+        return *this;
+    }
+    card& operator= (card&& rvl_c) noexcept
+    {
+        const_cast<card_variant_t&>(c) = std::move(const_cast<card_variant_t&>(rvl_c.c));
         return *this;
     }
 
