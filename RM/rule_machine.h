@@ -553,7 +553,7 @@ namespace rm // rule machine
                 }
                 return false; 
             };
-            std::any_of(it_transits_by_event.first, it_transits_by_event.second, l1);  // find valid transit
+            std::find_if(it_transits_by_event.first, it_transits_by_event.second, l1);  // find valid transit
 
             if (!ptr_transit_to_state) // не найдены переходы по событию
                 return { true, msg().true_reject };
