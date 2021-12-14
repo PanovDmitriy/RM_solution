@@ -10,6 +10,7 @@
 #include <ctime>
 #include <any>
 #include <memory>
+#include <algorithm>
 #include "rm_messages.h"
 
 
@@ -135,7 +136,7 @@ namespace rm // rule machine
         {
             const_cast<id_t&>(id) = rv_e.id;
             const_cast<id_t&>(rv_e.id) = id_undef_value;
-            const_cast<std::any&>(rv_e.param).swap(const_cast<std::any&>(param));
+            const_cast<std::any&>(rv_e.param) = std::move(const_cast<std::any&>(rv_e.param));
             if constexpr (is_event_log)
                 std::cout << "log: op=(event&&) id: " << id << std::endl;
         }
@@ -530,26 +531,30 @@ namespace rm // rule machine
 
             // find links from curr state to new state by event in tab
             auto& mmap_ref = it_curr_state_in_tab->second; // mmap_ref - std::multimap<id_t /*event id*/, transit_to_state>
-            auto it_transits_by_event = mmap_ref.equal_range(ref_e.id); // transits by event may be multiple
             transit_to_state* ptr_transit_to_state = nullptr;
-            for (auto& it_transit = it_transits_by_event.first; it_transit != it_transits_by_event.second; ++it_transit) // find valid transit
+
+            auto it_transits_by_event = mmap_ref.equal_range(ref_e.id); // transits by event may be multiple
+
+            auto l1 = [&](std::pair<const id_t, transit_to_state>& pr)
             {
-                transition* ptr_transit = it_transit->second.ptr_transition;
-
-                if (!ptr_transit) // if link is null, then success. link can be NULL. Guard condition will not test
+                transit_to_state& transit = pr.second;
+                if (!transit.ptr_transition) // if link is null, then success. link can be NULL. Guard condition will not test
                 {
-                    ptr_transit_to_state = &it_transit->second;
-                    break;
+                    ptr_transit_to_state = &transit;
+                    return true; 
                 }
-
-                // check link guard condition 
-                if (ptr_transit)
-                    if (ptr_transit->is_guard_condition(ref_e))
+                else // check link guard condition
+                {
+                    if (transit.ptr_transition->is_guard_condition(ref_e))
                     {
-                        ptr_transit_to_state = &it_transit->second;
-                        break;
+                        ptr_transit_to_state = &transit;
+                        return true;
                     }
-            }
+                }
+                return false; 
+            };
+            std::any_of(it_transits_by_event.first, it_transits_by_event.second, l1);  // find valid transit
+
             if (!ptr_transit_to_state) // не найдены переходы по событию
                 return { true, msg().true_reject };
 
