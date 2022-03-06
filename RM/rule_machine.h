@@ -95,16 +95,16 @@ namespace rm // rule machine
 
         event() = delete;
 
-        event(id_t id_) : 
-            id(id_) 
+        event(id_t _id) : 
+            id(_id) 
         { 
             if constexpr (is_event_log)
                 std::cout << "log: event(id) id: " << id << std::endl;
         }
 
         template<typename T>
-        event(id_t id_, T&& param_) :
-            id(id_), param{ std::forward<T>(param_) }
+        event(id_t _id, T&& param_) :
+            id(_id), param{ std::forward<T>(param_) }
         {
             if constexpr (is_event_log)
                 std::cout << "log: event(id, template T&& param) id: " << id << std::endl;
@@ -183,37 +183,37 @@ namespace rm // rule machine
         : public transition
     {
     protected:
-        IEventHandler& event_handler;
+        IEventHandler& event_handler_;
 
     protected:
-        std::vector <ptr_action_t> actions;
-        std::vector <ptr_guard_t> guards;
+        std::vector <ptr_action_t> actions_;
+        std::vector <ptr_guard_t> guards_;
 
     public:
-        transition_vecs(IEventHandler& event_handler_) :
-            event_handler(event_handler_)
+        transition_vecs(IEventHandler& event_handler) :
+            event_handler_(event_handler)
         {
         }
 
         void do_action(const event& ref_e) override
         {
-            for (auto action : actions)
+            for (auto action : actions_)
                 (*action)(ref_e);
         }
 
         void add_action(const ptr_action_t func)
         {
-            actions.push_back(func);
+            actions_.push_back(func);
         }
 
         void clear_actions()
         {
-            actions.clear();
+            actions_.clear();
         }
 
         bool is_guard_condition(const event& ref_e) override
         {
-            for (auto guard : guards)
+            for (auto guard : guards_)
             {
                 if (!(*guard)(ref_e))
                     return false;
@@ -223,11 +223,11 @@ namespace rm // rule machine
 
         void add_guard(const ptr_guard_t func)
         {
-            guards.push_back(func);
+            guards_.push_back(func);
         }
         void clear_guards()
         {
-            guards.clear();
+            guards_.clear();
         }
     };
 
@@ -239,25 +239,25 @@ namespace rm // rule machine
         : public transition_vecs
     {
     public:
-        const std::string name;
+        const std::string name_;
 
     public:
         transition_test() = delete;
 
-        transition_test(IEventHandler& event_handler_, std::string name_) :
-            transition_vecs (event_handler_),
-            name(name_)
+        transition_test(IEventHandler& event_handler, std::string name) :
+            transition_vecs (event_handler),
+            name_(name)
         {
         }
 
         void do_action(const event& ref_e) override
         {
-            std::cout << "link " << name << " * event [ " << ", " << std::to_string(ref_e.id) << " ]: action" << std::endl;
+            std::cout << "link " << name_ << " * event [ " << ", " << std::to_string(ref_e.id) << " ]: action" << std::endl;
         }
 
         bool is_guard_condition(const event& ref_e) override
         {
-            std::cout << "link " << name << " * event [ " << ", " << std::to_string(ref_e.id) << " ]: guard_condition: true" << std::endl;
+            std::cout << "link " << name_ << " * event [ " << ", " << std::to_string(ref_e.id) << " ]: guard_condition: true" << std::endl;
 
             return true;
         }
@@ -356,47 +356,47 @@ namespace rm // rule machine
         : public state
     {
     protected:
-        IEventHandler& event_handler;
+        IEventHandler& event_handler_;
 
     protected:
-        std::vector <ptr_action_t> entry_actions;
-        std::vector <ptr_action_t> exit_actions;
+        std::vector <ptr_action_t> entry_actions_;
+        std::vector <ptr_action_t> exit_actions_;
 
     public:
         state_vecs(IEventHandler& event_handler_) :
-            event_handler(event_handler_)
+            event_handler_(event_handler_)
         {
         }
 
     protected:
         void do_entry_action(const event& ref_e) override
         {
-            for (auto action : entry_actions)
+            for (auto action : entry_actions_)
                 (*action)(ref_e);
         }
         void do_exit_action(const event& ref_e) override
         {
-            for (auto action : exit_actions)
+            for (auto action : exit_actions_)
                 (*action)(ref_e);
         }
 
     public:
         void add_entry_action(const ptr_action_t func)
         {
-            entry_actions.push_back(func);
+            entry_actions_.push_back(func);
         }
         void clear_entry_actions()
         {
-            entry_actions.clear();
+            entry_actions_.clear();
         }
 
         void add_exit_action(const ptr_action_t func)
         {
-            exit_actions.push_back(func);
+            exit_actions_.push_back(func);
         }
         void clear_exit_actions()
         {
-            exit_actions.clear();
+            exit_actions_.clear();
         }
     };
 
@@ -408,35 +408,35 @@ namespace rm // rule machine
         : public state_vecs
     {
     protected:
-        const std::string name;
+        const std::string name_;
 
     public:
         state_test() = delete;
 
-        state_test(IEventHandler& event_handler_, std::string _name) :
-            state_vecs (event_handler_),
-            name(_name)
+        state_test(IEventHandler& event_handler, std::string name) :
+            state_vecs (event_handler),
+            name_(name)
         {
         }
 
     protected:
         void do_entry_action(const event& ref_e) override
         {
-            std::cout << "state " << name << " * event [ " << ", " << std::to_string(ref_e.id) << " ]: entry action" << std::endl;
+            std::cout << "state " << name_ << " * event [ " << ", " << std::to_string(ref_e.id) << " ]: entry action" << std::endl;
         }
         void do_exit_action(const event& ref_e) override
         {
-            std::cout << "state " << name << " * event [ " << ", " << std::to_string(ref_e.id) << " ]: exit action" << std::endl;
+            std::cout << "state " << name_ << " * event [ " << ", " << std::to_string(ref_e.id) << " ]: exit action" << std::endl;
         }
         void do_internal_action(const event& ref_e) override
         {
-            std::cout << "state " << name << " * event [ " << ", " << std::to_string(ref_e.id) << " ]: internal action" << std::endl;
+            std::cout << "state " << name_ << " * event [ " << ", " << std::to_string(ref_e.id) << " ]: internal action" << std::endl;
         }
 
     public:
         std::string to_string() override
         {
-            return name;
+            return name_;
         }
     };
 
@@ -450,29 +450,29 @@ namespace rm // rule machine
         public IEventHandler,
         public IMachine
     {
-        inline auto msg()
+        inline auto msg_()
         {
             return sgt_messages <base_messages>::get_instance().msgs;
         }
 
     private:
-        std::queue<shared_event_t> event_queue;
+        std::queue<shared_event_t> event_queue_;
 
     private:
-        struct transit_to_state
+        struct transit_to_state_t
         {
             transition* ptr_transition = nullptr;
             state* ptr_target_state = nullptr;
         };
 
-        using state_transitions_tab_t = std::map<state* /*source state*/, std::multimap<id_t /*event id*/, transit_to_state>>;
-        state_transitions_tab_t state_transitions_tab;
+        using state_transitions_tab_t = std::map<state* /*source state*/, std::multimap<id_t /*event id*/, transit_to_state_t>>;
+        state_transitions_tab_t state_transitions_tab_;
 
-        state* current_state_ptr = nullptr;
-        initial_state* initial_state_ptr = nullptr;
-        final_state* final_state_ptr = nullptr;
+        state* ptr_current_state_ = nullptr;
+        initial_state* ptr_initial_state_ = nullptr;
+        final_state* ptr_final_state_ = nullptr;
 
-        status curr_status = status::disabled;
+        status curr_status_ = status::disabled;
 
     public:
         //const id_t id;
@@ -482,14 +482,14 @@ namespace rm // rule machine
     public:
         result_t rise_event(const event& ref_e) override // инициировать событие
         {
-            event_queue.emplace(std::make_shared<event>(ref_e));
-            return { true, msg().true_ok };
+            event_queue_.emplace(std::make_shared<event>(ref_e));
+            return { true, msg_().true_ok };
         }
 
         result_t rise_event(event&& rlv_e) override // инициировать событие
         {
-            event_queue.emplace(std::make_shared<event>(std::move(rlv_e)));
-            return { true, msg().true_ok };
+            event_queue_.emplace(std::make_shared<event>(std::move(rlv_e)));
+            return { true, msg_().true_ok };
         }
 
     public:
@@ -501,44 +501,44 @@ namespace rm // rule machine
     public:
         result_t release_event() override
         {
-            while (!event_queue.empty())
+            while (!event_queue_.empty())
             {
-                shared_event_t& se = event_queue.front();
-                inside_release_event(*se);
-                event_queue.pop();
+                shared_event_t& se = event_queue_.front();
+                release_event_(*se);
+                event_queue_.pop();
             }
 
-            return { true, msg().true_ok };
+            return { true, msg_().true_ok };
         }
 
     protected:
-        result_t inside_release_event(const event& ref_e)  // реализовать событие
+        result_t release_event_(const event& ref_e)  // реализовать событие
         {
             // return: success - true, error - false
 
             // + pre conditions
-            if (curr_status != status::enabled)
-                return { true, msg().true_nenabled };
+            if (curr_status_ != status::enabled)
+                return { true, msg_().true_nenabled };
 
             // test curr state
-            if (!current_state_ptr)
-                return { false, msg().false_curr_state_null };
+            if (!ptr_current_state_)
+                return { false, msg_().false_curr_state_null };
 
             // find curr state in tab
-            auto it_curr_state_in_tab = state_transitions_tab.find(current_state_ptr);
-            if (it_curr_state_in_tab == state_transitions_tab.end())
-                return { false, msg().false_curr_state_nfaund };
+            auto it_curr_state_in_tab = state_transitions_tab_.find(ptr_current_state_);
+            if (it_curr_state_in_tab == state_transitions_tab_.end())
+                return { false, msg_().false_curr_state_nfaund };
 
             // find links from curr state to new state by event in tab
             auto& mmap_ref = it_curr_state_in_tab->second; // mmap_ref - std::multimap<id_t /*event id*/, transit_to_state>
-            transit_to_state* ptr_transit_to_state = nullptr;
+            transit_to_state_t* ptr_transit_to_state = nullptr;
 
             auto it_transits_by_event = mmap_ref.equal_range(ref_e.id); // transits by event may be multiple
 
             // find valid transit
-            if (!std::any_of(it_transits_by_event.first, it_transits_by_event.second, [&](std::pair<const id_t, transit_to_state>& pr)
+            if (!std::any_of(it_transits_by_event.first, it_transits_by_event.second, [&](std::pair<const id_t, transit_to_state_t>& pr)
                 {
-                    transit_to_state& transit = pr.second;
+                    transit_to_state_t& transit = pr.second;
                     if (!transit.ptr_transition) // if link is null, then success. link can be NULL. Guard condition will not test
                     {
                         ptr_transit_to_state = &transit;
@@ -556,71 +556,71 @@ namespace rm // rule machine
                 }))
             {
                 // не найдены переходы по событию
-                return { true, msg().true_reject };
+                return { true, msg_().true_reject };
             };
 
             if (!(ptr_transit_to_state->ptr_target_state))
-                return { false, msg().false_target_state_null };
+                return { false, msg_().false_target_state_null };
             // - pre conditions
 
             /// Ok! change state now! ///
 
             // do unactivate source (current) state
-            current_state_ptr->do_unactivate(ref_e);
+            ptr_current_state_->do_unactivate(ref_e);
 
             // do transition actions
             if (ptr_transit_to_state->ptr_transition)
                 ptr_transit_to_state->ptr_transition->do_action(ref_e);
 
             // update current state index, change current state from source to target
-            current_state_ptr = ptr_transit_to_state->ptr_target_state;
+            ptr_current_state_ = ptr_transit_to_state->ptr_target_state;
 
-            if (current_state_ptr == final_state_ptr)
+            if (ptr_current_state_ == ptr_final_state_)
             {
                 set_status_disabled();
-                return { true, msg().true_curr_state_final };
+                return { true, msg_().true_curr_state_final };
             }
 
             // do activate target (current) state
-            current_state_ptr->do_activate(ref_e);
+            ptr_current_state_->do_activate(ref_e);
 
-            return { true, msg().true_ok };
+            return { true, msg_().true_ok };
         }
 
     public:
-        result_t add_link(id_t e_id, state* s_source, state* s_target, transition* t = nullptr)
+        result_t add_link(id_t event_id, state* state_source, state* state_target, transition* trans = nullptr)
         {
-            if (!s_source || !s_target)
-                return { false, msg().param_state_is_null };
+            if (!state_source || !state_target)
+                return { false, msg_().param_state_is_null };
 
-            transit_to_state ls;
-            ls.ptr_transition = t;
-            ls.ptr_target_state = s_target;
-            state_transitions_tab[s_source].insert(std::pair<id_t /*event id*/, transit_to_state>(e_id, ls));
+            transit_to_state_t ls;
+            ls.ptr_transition = trans;
+            ls.ptr_target_state = state_target;
+            state_transitions_tab_[state_source].insert(std::pair<id_t /*event id*/, transit_to_state_t>(event_id, ls));
 
-            return { true, msg().true_ok };
+            return { true, msg_().true_ok };
         }
 
-        result_t add_link(id_t e_id, initial_state* s_source, state* s_target, transition* t = nullptr)
+        result_t add_link(id_t event_id, initial_state* state_source, state* state_target, transition* trans = nullptr)
         {
-            if (initial_state_ptr && initial_state_ptr != s_source)
-                return { false, msg().init_state_is_already_set }; // initial state must be single!
+            if (ptr_initial_state_ && ptr_initial_state_ != state_source)
+                return { false, msg_().init_state_is_already_set }; // initial state must be single!
 
-            result_t rez = add_link(e_id, static_cast<state*>(s_source), s_target, t);
+            result_t rez = add_link(event_id, static_cast<state*>(state_source), state_target, trans);
             if (std::get<0>(rez))
-                initial_state_ptr = s_source;
+                ptr_initial_state_ = state_source;
 
             return rez;
         }
 
-        result_t add_link(id_t e_id, state* s_source, final_state* s_target, transition* t = nullptr)
+        result_t add_link(id_t event_id, state* state_source, final_state* state_target, transition* trans = nullptr)
         {
-            if (final_state_ptr && final_state_ptr != s_target) // не обязательное условие, чисто для симметрии с initial state
-                return { false, msg().final_state_is_already_set }; // final state must be single! но это не точно :)
+            if (ptr_final_state_ && ptr_final_state_ != state_target) // не обязательное условие, чисто для симметрии с initial state
+                return { false, msg_().final_state_is_already_set }; // final state must be single! но это не точно :)
 
-            result_t rez = add_link(e_id, s_source, static_cast<state*>(s_target), t);
+            result_t rez = add_link(event_id, state_source, static_cast<state*>(state_target), trans);
             if (std::get<0>(rez))
-                final_state_ptr = s_target;
+                ptr_final_state_ = state_target;
 
             return rez;
         }
@@ -629,17 +629,17 @@ namespace rm // rule machine
         {
             std::cout << "state list:" << std::endl;
 
-            for (auto& a : state_transitions_tab)
+            for (auto& a : state_transitions_tab_)
             {
                 std::cout << "\tstate " << a.first->to_string() << std::endl;
-                for (auto& [event_id, transit_to_state] : a.second)
+                for (auto& [event_id, transit_to_state_t] : a.second)
                 {
                     std::cout << "\t\tevent ID: " << event_id;
-                    if (!(transit_to_state.ptr_transition))
+                    if (!(transit_to_state_t.ptr_transition))
                         std::cout << " null link to ";
                     else
                         std::cout << " not null link to ";
-                    std::cout << transit_to_state.ptr_target_state->to_string() << std::endl;
+                    std::cout << transit_to_state_t.ptr_target_state->to_string() << std::endl;
                 }
             }
         }
@@ -654,85 +654,85 @@ namespace rm // rule machine
             // в каждое состояние (кроме init state) должен существовать переход
             // примечение: состояние (кролме init) не обязано быть исходным
 
-            if (!initial_state_ptr)
+            if (!ptr_initial_state_)
                 return { false, "Init state is null" };
 
-            state* istate_ptr = static_cast<state*>(initial_state_ptr);
-            state* fstate_ptr = static_cast<state*>(final_state_ptr);
+            state* ptr_istate = static_cast<state*>(ptr_initial_state_);
+            state* ptr_fstate = static_cast<state*>(ptr_final_state_);
             bool is_init_as_source = false;
             std::set<state*> target_states;
 
-            for (auto& [ptr_source_state, a] : state_transitions_tab)
+            for (auto& [ptr_source_state, a] : state_transitions_tab_)
             {
                 if (ptr_source_state == nullptr)
                     return { false, "Source state is null" };
 
-                if (ptr_source_state == istate_ptr)
+                if (ptr_source_state == ptr_istate)
                     is_init_as_source = true;
 
-                if (ptr_source_state == fstate_ptr)
+                if (ptr_source_state == ptr_fstate)
                     return { false, "Final state is source state" };
 
-                for (auto& [event_id, transit_to_state] : a)
+                for (auto& [event_id, transit_to_state_t] : a)
                 {
-                    if (transit_to_state.ptr_target_state == nullptr)
+                    if (transit_to_state_t.ptr_target_state == nullptr)
                         return { false, "Target state is null" };
 
-                    if (transit_to_state.ptr_target_state == istate_ptr)
+                    if (transit_to_state_t.ptr_target_state == ptr_istate)
                         return { false, "Init state is target state" };
 
-                    target_states.insert(transit_to_state.ptr_target_state);
+                    target_states.insert(transit_to_state_t.ptr_target_state);
                 }
             }
 
             if (!is_init_as_source)
                 return { false, "Init state haven't transitions" };
 
-            for (auto& [ptr_source_state, a] : state_transitions_tab)
+            for (auto& [ptr_source_state, a] : state_transitions_tab_)
             {
-                if (ptr_source_state == istate_ptr)
+                if (ptr_source_state == ptr_istate)
                     continue;
 
                 if (target_states.find(ptr_source_state) == target_states.end())
                     return { false, "Not linked state" };
             }
 
-            return { true, msg().true_ok };
+            return { true, msg_().true_ok };
         }
 
         // + control methods sm
         status get_status() override
         {
-            return curr_status;
+            return curr_status_;
         }
 
         void set_status_enabled() override
         {
-            switch (curr_status)
+            switch (curr_status_)
             {
             case status::enabled:
                 break;
             case status::disabled:
-                current_state_ptr = static_cast<state*>(initial_state_ptr);
+                ptr_current_state_ = static_cast<state*>(ptr_initial_state_);
                 [[fallthrough]];
             case status::paused:
-                curr_status = status::enabled;
+                curr_status_ = status::enabled;
                 break;
             }
         }
 
         void set_status_enabled(event&& rvl_e) override
         {
-            switch (curr_status)
+            switch (curr_status_)
             {
             case status::enabled:
                 break;
             case status::disabled:
-                current_state_ptr = static_cast<state*>(initial_state_ptr);
-                initial_state_ptr->do_activate(rvl_e); // for debug only. init_state.do_activate is clear
+                ptr_current_state_ = static_cast<state*>(ptr_initial_state_);
+                ptr_initial_state_->do_activate(rvl_e); // for debug only. init_state.do_activate is clear
                 [[fallthrough]];
             case status::paused:
-                curr_status = status::enabled;
+                curr_status_ = status::enabled;
                 rise_event(std::move(rvl_e));
                 break;
             }
@@ -740,16 +740,16 @@ namespace rm // rule machine
         
         void set_status_enabled(const event& ref_e) override
         {
-            switch (curr_status)
+            switch (curr_status_)
             {
             case status::enabled:
                 break;
             case status::disabled:
-                current_state_ptr = static_cast<state*>(initial_state_ptr);
-                initial_state_ptr->do_activate(ref_e); // for debug only. init_state.do_activate is clear
+                ptr_current_state_ = static_cast<state*>(ptr_initial_state_);
+                ptr_initial_state_->do_activate(ref_e); // for debug only. init_state.do_activate is clear
                 [[fallthrough]];
             case status::paused:
-                curr_status = status::enabled;
+                curr_status_ = status::enabled;
                 rise_event(ref_e);
                 break;
             }
@@ -757,10 +757,10 @@ namespace rm // rule machine
 
         void set_status_paused() override
         {
-            switch (curr_status)
+            switch (curr_status_)
             {
             case status::enabled:
-                curr_status = status::paused;
+                curr_status_ = status::paused;
                 break;
             case status::paused:
             case status::disabled:
@@ -770,14 +770,14 @@ namespace rm // rule machine
 
         void set_status_disabled() override
         {
-            curr_status = status::disabled;
+            curr_status_ = status::disabled;
         }
         // - control methods sm
 
         void clear() override
         {
             set_status_disabled ();
-            state_transitions_tab.clear();
+            state_transitions_tab_.clear();
         }
     };
 
@@ -788,19 +788,19 @@ namespace rm // rule machine
         public IEventHandler,
         public IMachine
     {
-        inline auto msg()
+        inline auto msg_()
         {
             return sgt_messages <base_messages>::get_instance().msgs;
         }
 
     private:
-        std::vector<IMachine*> inside_machines;
-        status curr_status = status::disabled;
+        std::vector<IMachine*> inside_machines_;
+        status curr_status_ = status::disabled;
 
     public:
         void add_machine(IMachine* ptr_m)
         {
-            inside_machines.push_back(ptr_m);
+            inside_machines_.push_back(ptr_m);
         }
 
     public:
@@ -811,10 +811,10 @@ namespace rm // rule machine
 
         result_t rise_event(const event& ref_e) override
         {
-            if (curr_status != status::enabled)
-                return { true, msg().true_ok };
+            if (curr_status_ != status::enabled)
+                return { true, msg_().true_ok };
 
-            for (IMachine* m : inside_machines)
+            for (IMachine* m : inside_machines_)
                 if (m)
                 {
                     IEventHandler* h = m -> get_event_handler();
@@ -822,15 +822,15 @@ namespace rm // rule machine
                         h -> rise_event(ref_e);
                 }
 
-            return { true, msg().true_ok };
+            return { true, msg_().true_ok };
         }
 
         result_t rise_event(event&& rlv_e) override
         {
-            if (curr_status != status::enabled)
-                return { true, msg().true_ok };
+            if (curr_status_ != status::enabled)
+                return { true, msg_().true_ok };
 
-            for (IMachine* m : inside_machines)
+            for (IMachine* m : inside_machines_)
                 if (m)
                 {
                     IEventHandler* h = m -> get_event_handler();
@@ -838,12 +838,12 @@ namespace rm // rule machine
                         h->rise_event(rlv_e);
                 }
 
-            return { true, msg().true_ok };
+            return { true, msg_().true_ok };
         }
 
         result_t release_event() override
         {
-            for (IMachine* m : inside_machines)
+            for (IMachine* m : inside_machines_)
                 if (m)
                 {
                     IEventHandler* h = m->get_event_handler();
@@ -851,57 +851,57 @@ namespace rm // rule machine
                         h->release_event();
                 }
 
-            return { true, msg().true_ok };
+            return { true, msg_().true_ok };
         }
 
     public:
         // + control methods sm
         status get_status() override
         {
-            return curr_status;
+            return curr_status_;
         }
 
         void set_status_enabled() override
         {
-            curr_status = status::enabled;
+            curr_status_ = status::enabled;
 
-            for (IMachine* sm : inside_machines)
+            for (IMachine* sm : inside_machines_)
                 if (sm)
                     sm->set_status_enabled();
         }
         
         void set_status_enabled(event&& rvl_e) override
         {
-            curr_status = status::enabled;
+            curr_status_ = status::enabled;
 
-            for (IMachine* sm : inside_machines)
+            for (IMachine* sm : inside_machines_)
                 if (sm)
                     sm->set_status_enabled(rvl_e);
         }
         
         void set_status_enabled(const event& ref_e) override
         {
-            curr_status = status::enabled;
+            curr_status_ = status::enabled;
 
-            for (IMachine* sm : inside_machines)
+            for (IMachine* sm : inside_machines_)
                 if (sm)
                     sm->set_status_enabled(ref_e);
         }
 
         void set_status_paused() override
         {
-            curr_status = status::paused;
+            curr_status_ = status::paused;
 
-            for (IMachine* sm : inside_machines)
+            for (IMachine* sm : inside_machines_)
                 if (sm)
                     sm->set_status_paused();
         }
 
         void set_status_disabled() override
         {
-            curr_status = status::disabled;
+            curr_status_ = status::disabled;
 
-            for (IMachine* sm : inside_machines)
+            for (IMachine* sm : inside_machines_)
                 if (sm)
                     sm->set_status_disabled();
         }
@@ -912,13 +912,13 @@ namespace rm // rule machine
         {
             set_status_disabled();
 
-            for (IMachine* ptr_sm : inside_machines)
+            for (IMachine* ptr_sm : inside_machines_)
             {
                 if (ptr_sm)
                     ptr_sm->clear();
             }
 
-            inside_machines.clear();
+            inside_machines_.clear();
         }
     };
 }

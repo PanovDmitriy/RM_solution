@@ -421,9 +421,9 @@ public:
         return int (cards.size());
     }
 
-    void show(std::string name)
+    void show(std::string name_)
     {
-        std::cout << "card set: " << name << std::endl;
+        std::cout << "card set: " << name_ << std::endl;
         show();
     }
 
