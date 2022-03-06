@@ -48,7 +48,7 @@ struct test_param
 
 
 class state_turn_player :
-    public state
+    public State
 {
 public:
     DOM* ptr_dom = nullptr;
@@ -62,13 +62,13 @@ public:
     }
 
 protected:
-    void do_entry_action(const event& ref_e) override;
+    void do_entry_action(const Event& ref_e) override;
 
 };
 
 
 class state_pre_play :
-    public state
+    public State
 {
 public:
     DOM* ptr_dom = nullptr;
@@ -80,13 +80,13 @@ public:
     }
 
 protected:
-    void do_entry_action(const event& ref_e) override;
+    void do_entry_action(const Event& ref_e) override;
 
 };
 
 
 class state_turn_play :
-    public state
+    public State
 {
 private:
     DOM* ptr_dom = nullptr;
@@ -98,18 +98,18 @@ public:
     }
 
 protected:
-    void do_entry_action(const event& ref_e) override;
+    void do_entry_action(const Event& ref_e) override;
 
 };
 
 class transition_game_over
-    : public transition
+    : public Transition
 {
 private:
     id_t no_card_id_ = -1;
 
 protected:
-    void get_winner(const event& ref_e)
+    void get_winner(const Event& ref_e)
     {
         if (ref_e.id == no_card_id_ && no_card_id_ >= 0)
         {
@@ -132,7 +132,7 @@ public:
         no_card_id_ = e_no_card_id;
     }
 
-    void do_action(const event& ref_e) override
+    void do_action(const Event& ref_e) override
     {
         get_winner(ref_e);
     }
@@ -150,18 +150,18 @@ public:
     const int max_turn = std::numeric_limits<int>::max() - 1;
 
 public:
-    rule_machine rm;
+    RuleMachine rm;
 
-    state_machine sm_players;
-    state_machine sm_play;
+    StateMachine sm_players;
+    StateMachine sm_play;
 
-    initial_state st_init_players;
-    state st_await_player_starts;
+    InitialState st_init_players;
+    State st_await_player_starts;
     state_turn_player st_turn_players;
 
-    initial_state st_init_play;
-    final_state st_final_play;
-    state st_await_play_start;
+    InitialState st_init_play;
+    FinalState st_final_play;
+    State st_await_play_start;
     state_pre_play st_preplay;
     state_turn_play st_turn_play;
 
@@ -249,14 +249,14 @@ void DOM::init()
     std::cout << "sm_players check integrity: " << sm_players_cis << std::endl;
     std::cout << "sm_play check integrity: " << sm_play_cis << std::endl;
 
-    sm_players.set_status_enabled(event(init_players_id, "init_players"));
-    sm_play.set_status_enabled(event(init_play_id, "init_play"));
+    sm_players.set_status_enabled(Event(init_players_id, "init_players"));
+    sm_play.set_status_enabled(Event(init_play_id, "init_play"));
     rm.set_status_enabled({ id_undef_cvalue });
-    event e_start(start_play_id);
+    Event e_start(start_play_id);
     rm.rise_event(e_start);
 }
 
-void state_turn_player::do_entry_action(const event& ref_e)
+void state_turn_player::do_entry_action(const Event& ref_e)
 {
     card c1(e_card_mark::Joker);
     card c2(c1);
@@ -273,7 +273,7 @@ void state_turn_player::do_entry_action(const event& ref_e)
         if (!ptr_dom->sc_player1.move_card_first2first(ptr_dom->sc_table))
         {
             std::cout << "player1: нет карт!" << std::endl;
-            ptr_dom->get_event_handler()->rise_event(event(ptr_dom->no_card_id, int(1)));
+            ptr_dom->get_event_handler()->rise_event(Event(ptr_dom->no_card_id, int(1)));
             return;
         }
         std::cout << "player1: " << ptr_dom->sc_table.get_first_card().get_name();
@@ -283,7 +283,7 @@ void state_turn_player::do_entry_action(const event& ref_e)
         if (!ptr_dom->sc_player2.move_card_first2first(ptr_dom->sc_table))
         {
             std::cout << "player2: нет карт!" << std::endl;
-            ptr_dom->get_event_handler()->rise_event(event(ptr_dom->no_card_id, int(2)));
+            ptr_dom->get_event_handler()->rise_event(Event(ptr_dom->no_card_id, int(2)));
             return;
         }
         std::cout << "player2: " << ptr_dom->sc_table.get_first_card().get_name();
@@ -296,7 +296,7 @@ void state_turn_player::do_entry_action(const event& ref_e)
         if (!ptr_dom->sc_player1.move_card_first2first(ptr_dom->sc_table))
         {
             std::cout << "player1: нет карт!" << std::endl;
-            ptr_dom->get_event_handler()->rise_event(event(ptr_dom->no_card_id, int(1)));
+            ptr_dom->get_event_handler()->rise_event(Event(ptr_dom->no_card_id, int(1)));
             return;
         }
         std::cout << "player1: " << ptr_dom->sc_table.get_first_card().get_name();
@@ -304,7 +304,7 @@ void state_turn_player::do_entry_action(const event& ref_e)
         if (!ptr_dom->sc_player1.move_card_first2first(ptr_dom->sc_table))
         {
             std::cout << "player1: нет карт!" << std::endl;
-            ptr_dom->get_event_handler()->rise_event(event(ptr_dom->no_card_id, int(1)));
+            ptr_dom->get_event_handler()->rise_event(Event(ptr_dom->no_card_id, int(1)));
             return;
         }
         std::cout << "player1: " << ptr_dom->sc_table.get_first_card().get_name();
@@ -314,7 +314,7 @@ void state_turn_player::do_entry_action(const event& ref_e)
         if (!ptr_dom->sc_player2.move_card_first2first(ptr_dom->sc_table))
         {
             std::cout << "player2: нет карт!" << std::endl;
-            ptr_dom->get_event_handler()->rise_event(event(ptr_dom->no_card_id, int(2)));
+            ptr_dom->get_event_handler()->rise_event(Event(ptr_dom->no_card_id, int(2)));
             return;
         }
         std::cout << "player2: " << ptr_dom->sc_table.get_first_card().get_name();
@@ -322,7 +322,7 @@ void state_turn_player::do_entry_action(const event& ref_e)
         if (!ptr_dom->sc_player2.move_card_first2first(ptr_dom->sc_table))
         {
             std::cout << "player2: нет карт!" << std::endl;
-            ptr_dom->get_event_handler()->rise_event(event(ptr_dom->no_card_id, int(2)));
+            ptr_dom->get_event_handler()->rise_event(Event(ptr_dom->no_card_id, int(2)));
             return;
         }
         std::cout << "player2: " << ptr_dom->sc_table.get_first_card().get_name();
@@ -332,10 +332,10 @@ void state_turn_player::do_entry_action(const event& ref_e)
 
     ptr_dom->turn_n++;
 
-    ptr_dom->get_event_handler()->rise_event(event(ptr_dom->card_on_table_id, std::pair<card, card>(c1, c2)));
+    ptr_dom->get_event_handler()->rise_event(Event(ptr_dom->card_on_table_id, std::pair<card, card>(c1, c2)));
 }
 
-void state_pre_play::do_entry_action(const event& ref_e)
+void state_pre_play::do_entry_action(const Event& ref_e)
 {
     //  раздать карты
     if constexpr (!is_test_cardset)
@@ -425,7 +425,7 @@ void state_pre_play::do_entry_action(const event& ref_e)
     ptr_dom->get_event_handler()->rise_event(ptr_dom->next_turn_id);
 }
 
-void state_turn_play::do_entry_action(const event& ref_e)
+void state_turn_play::do_entry_action(const Event& ref_e)
 {
     if (ref_e.id == ptr_dom->card_on_table_id)
     {
@@ -435,14 +435,14 @@ void state_turn_play::do_entry_action(const event& ref_e)
         //сообщить "next_turn"
         //если равны,
         //сообщить "next_sub_turn"
-        auto [c1, c2] = std::any_cast<std::pair<card, card>>(const_cast<event&>(ref_e).param);
+        auto [c1, c2] = std::any_cast<std::pair<card, card>>(const_cast<Event&>(ref_e).param);
         if (c1 < c2)
         {
             std::cout << c1.get_name() << " < " << c2.get_name() << std::endl;
             std::cout << ptr_dom->sc_table.get_size() << " карты уходят к Player2" << std::endl;
             ptr_dom->sc_table.move_all_cards_first2back(ptr_dom->sc_player2);
             std::cout << "Карт: " << ptr_dom->sc_player1.get_size() << " + " << ptr_dom->sc_player2.get_size() << " + стол: " << ptr_dom->sc_table.get_size() << std::endl;
-            ptr_dom->get_event_handler()->rise_event(event{ ptr_dom->next_turn_id });
+            ptr_dom->get_event_handler()->rise_event(Event{ ptr_dom->next_turn_id });
         }
         else if (c2 < c1)
         {
@@ -451,7 +451,7 @@ void state_turn_play::do_entry_action(const event& ref_e)
             ptr_dom->sc_table.move_all_cards_first2back(ptr_dom->sc_player1);
             std::cout << "Карт: " << ptr_dom->sc_player1.get_size() << " + " << ptr_dom->sc_player2.get_size() << " + стол: " << ptr_dom->sc_table.get_size() << std::endl;
             //riser.rise_event(event(dom->next_turn_id, std::move(test_param {})));
-            ptr_dom->get_event_handler()->rise_event(event{ ptr_dom->next_turn_id });
+            ptr_dom->get_event_handler()->rise_event(Event{ ptr_dom->next_turn_id });
         }
         else if (c1 == c2)
         {

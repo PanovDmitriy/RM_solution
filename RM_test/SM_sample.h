@@ -5,23 +5,23 @@
 
 using namespace rm;
 
-void action1(const event& ref_e)
+void action1(const Event& ref_e)
 {
     std::cout << "action1: event: " << ref_e.id << std::endl;
 }
 
-void action2(const event& ref_e)
+void action2(const Event& ref_e)
 {
     std::cout << "action2: event: " << ref_e.id << std::endl;
 }
 
-bool guard_always_false(const event& ref_e)
+bool guard_always_false(const Event& ref_e)
 {
     std::cout << "guard_always_false: event: " << ref_e.id << std::endl;
     return false;
 }
 
-bool guard_always_true(const event& ref_e)
+bool guard_always_true(const Event& ref_e)
 {
     std::cout << "guard_always_true: event: " << ref_e.id << std::endl;
     return true;
@@ -29,41 +29,41 @@ bool guard_always_true(const event& ref_e)
 
 void main_SM()
 {
-    event e12(102, "event 1->2");
-    event e23(203, "event 2->3");
-    event e31(301, "event 3->1");
-    event e21(201, "event 2->1");
-    event e32(302, "event 3->2");
-    event e13(103, "event 1->3");
-    event einit1(001, "event init->1");
-    event einit2(002, "event init->2");
-    event einit3(003, "event init->3");
-    event e1final(100, "event 1->final");
-    event e2final(200, "event 2->final");
-    event e3final(300, "event 3->final");
+    Event e12(102, "event 1->2");
+    Event e23(203, "event 2->3");
+    Event e31(301, "event 3->1");
+    Event e21(201, "event 2->1");
+    Event e32(302, "event 3->2");
+    Event e13(103, "event 1->3");
+    Event einit1(001, "event init->1");
+    Event einit2(002, "event init->2");
+    Event einit3(003, "event init->3");
+    Event e1final(100, "event 1->final");
+    Event e2final(200, "event 2->final");
+    Event e3final(300, "event 3->final");
 
-    rule_machine rm;
-    state_machine sm;
+    RuleMachine rm;
+    StateMachine sm;
     rm.add_machine(&sm);
 
-    state_test s1(rm, "state1");
-    state_test s2(rm, "state2");
-    state_test s3(rm, "state3");
-    initial_state si;
+    StateTest s1(rm, "state1");
+    StateTest s2(rm, "state2");
+    StateTest s3(rm, "state3");
+    InitialState si;
     //final_state sf;
 
-    transition_test tinit1(rm, "trans init->1");
-    transition_test tinit2(rm, "trans init->2");
-    transition_test tinit3(rm, "trans init->3");
-    transition_test tfinal1(rm, "trans 1->final");
-    transition_test tfinal2(rm, "trans 2->final");
-    transition_test tfinal3(rm, "trans 3->final");
-    transition_test t12(rm, "trans 1->2");
-    transition_test t21(rm, "trans 2->1");
-    transition_test t23(rm, "trans 2->3");
-    transition_test t32(rm, "trans 3->2");
-    transition_test t13(rm, "trans 1->3");
-    transition_test t31(rm, "trans 3->1");
+    TransitionTest tinit1(rm, "trans init->1");
+    TransitionTest tinit2(rm, "trans init->2");
+    TransitionTest tinit3(rm, "trans init->3");
+    TransitionTest tfinal1(rm, "trans 1->final");
+    TransitionTest tfinal2(rm, "trans 2->final");
+    TransitionTest tfinal3(rm, "trans 3->final");
+    TransitionTest t12(rm, "trans 1->2");
+    TransitionTest t21(rm, "trans 2->1");
+    TransitionTest t23(rm, "trans 2->3");
+    TransitionTest t32(rm, "trans 3->2");
+    TransitionTest t13(rm, "trans 1->3");
+    TransitionTest t31(rm, "trans 3->1");
 
     t31.add_guard(guard_always_false);
     t13.add_action(action1);
@@ -101,7 +101,7 @@ void main_SM()
             break;
         }
 
-        event* ee = &e12;
+        Event* ee = &e12;
         switch (rand() % (b - a + 1) + a)
         {
         case 1: ee = &e12; break;
