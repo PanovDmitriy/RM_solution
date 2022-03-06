@@ -25,9 +25,9 @@ namespace rm // rule machine
     class rule_machine;
 
     using id_t = int;
-    constexpr id_t id_undef_value = -1;
+    constexpr id_t id_undef_cvalue = -1;
 
-    using shared_event = std::shared_ptr<event>;
+    using shared_event_t = std::shared_ptr<event>;
 
     using result_t = std::tuple <bool, std::string>;
     using ptr_action_t = void (*)(const event&);
@@ -89,7 +89,7 @@ namespace rm // rule machine
     class event final
     {
     public:
-        const id_t id = id_undef_value; // идентификатор
+        const id_t id = id_undef_cvalue; // идентификатор
         const std::time_t time = std::time(nullptr); // время создания события
         const std::any param;
 
@@ -120,7 +120,7 @@ namespace rm // rule machine
         event(event&& e) noexcept : 
             id(e.id), time(e.time), param (std::move(const_cast<std::any&>(e.param)))
         {
-            const_cast<id_t&>(e.id) = id_undef_value;
+            const_cast<id_t&>(e.id) = id_undef_cvalue;
             if constexpr (is_event_log)
                 std::cout << "log: event(event&&) id: " << id << std::endl;
         }
@@ -135,7 +135,7 @@ namespace rm // rule machine
         void operator= (event&& rv_e) noexcept
         {
             const_cast<id_t&>(id) = rv_e.id;
-            const_cast<id_t&>(rv_e.id) = id_undef_value;
+            const_cast<id_t&>(rv_e.id) = id_undef_cvalue;
             const_cast<std::any&>(rv_e.param) = std::move(const_cast<std::any&>(rv_e.param));
             if constexpr (is_event_log)
                 std::cout << "log: op=(event&&) id: " << id << std::endl;
@@ -456,7 +456,7 @@ namespace rm // rule machine
         }
 
     private:
-        std::queue<shared_event> event_queue;
+        std::queue<shared_event_t> event_queue;
 
     private:
         struct transit_to_state
@@ -503,7 +503,7 @@ namespace rm // rule machine
         {
             while (!event_queue.empty())
             {
-                shared_event& se = event_queue.front();
+                shared_event_t& se = event_queue.front();
                 inside_release_event(*se);
                 event_queue.pop();
             }
@@ -535,28 +535,29 @@ namespace rm // rule machine
 
             auto it_transits_by_event = mmap_ref.equal_range(ref_e.id); // transits by event may be multiple
 
-            auto l1 = [&](std::pair<const id_t, transit_to_state>& pr)
-            {
-                transit_to_state& transit = pr.second;
-                if (!transit.ptr_transition) // if link is null, then success. link can be NULL. Guard condition will not test
+            // find valid transit
+            if (!std::any_of(it_transits_by_event.first, it_transits_by_event.second, [&](std::pair<const id_t, transit_to_state>& pr)
                 {
-                    ptr_transit_to_state = &transit;
-                    return true; 
-                }
-                else // check link guard condition
-                {
-                    if (transit.ptr_transition->is_guard_condition(ref_e))
+                    transit_to_state& transit = pr.second;
+                    if (!transit.ptr_transition) // if link is null, then success. link can be NULL. Guard condition will not test
                     {
                         ptr_transit_to_state = &transit;
                         return true;
                     }
-                }
-                return false; 
-            };
-            std::find_if(it_transits_by_event.first, it_transits_by_event.second, l1);  // find valid transit
-
-            if (!ptr_transit_to_state) // не найдены переходы по событию
+                    else // check link guard condition
+                    {
+                        if (transit.ptr_transition->is_guard_condition(ref_e))
+                        {
+                            ptr_transit_to_state = &transit;
+                            return true;
+                        }
+                    }
+                    return false;
+                }))
+            {
+                // не найдены переходы по событию
                 return { true, msg().true_reject };
+            };
 
             if (!(ptr_transit_to_state->ptr_target_state))
                 return { false, msg().false_target_state_null };
@@ -587,7 +588,7 @@ namespace rm // rule machine
         }
 
     public:
-        result_t add_event_state_state_transition(id_t e_id, state* s_source, state* s_target, transition* t = nullptr)
+        result_t add_link(id_t e_id, state* s_source, state* s_target, transition* t = nullptr)
         {
             if (!s_source || !s_target)
                 return { false, msg().param_state_is_null };
@@ -600,24 +601,24 @@ namespace rm // rule machine
             return { true, msg().true_ok };
         }
 
-        result_t add_event_state_state_transition(id_t e_id, initial_state* s_source, state* s_target, transition* t = nullptr)
+        result_t add_link(id_t e_id, initial_state* s_source, state* s_target, transition* t = nullptr)
         {
             if (initial_state_ptr && initial_state_ptr != s_source)
                 return { false, msg().init_state_is_already_set }; // initial state must be single!
 
-            result_t rez = add_event_state_state_transition(e_id, static_cast<state*>(s_source), s_target, t);
+            result_t rez = add_link(e_id, static_cast<state*>(s_source), s_target, t);
             if (std::get<0>(rez))
                 initial_state_ptr = s_source;
 
             return rez;
         }
 
-        result_t add_event_state_state_transition(id_t e_id, state* s_source, final_state* s_target, transition* t = nullptr)
+        result_t add_link(id_t e_id, state* s_source, final_state* s_target, transition* t = nullptr)
         {
             if (final_state_ptr && final_state_ptr != s_target) // не обязательное условие, чисто для симметрии с initial state
                 return { false, msg().final_state_is_already_set }; // final state must be single! но это не точно :)
 
-            result_t rez = add_event_state_state_transition(e_id, s_source, static_cast<state*>(s_target), t);
+            result_t rez = add_link(e_id, s_source, static_cast<state*>(s_target), t);
             if (std::get<0>(rez))
                 final_state_ptr = s_target;
 

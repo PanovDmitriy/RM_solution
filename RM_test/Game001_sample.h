@@ -233,16 +233,16 @@ void DOM::init()
     rm.add_machine(&sm_players);
     rm.add_machine(&sm_play);
 
-    sm_players.add_event_state_state_transition(init_players_id, &st_init_players, &st_await_player_starts);
-    sm_players.add_event_state_state_transition(next_turn_id, &st_await_player_starts, &st_turn_players);
-    sm_players.add_event_state_state_transition(next_turn_id, &st_turn_players, &st_turn_players);
-    sm_players.add_event_state_state_transition(next_sub_turn_id, &st_turn_players, &st_turn_players);
+    sm_players.add_link(init_players_id, &st_init_players, &st_await_player_starts);
+    sm_players.add_link(next_turn_id, &st_await_player_starts, &st_turn_players);
+    sm_players.add_link(next_turn_id, &st_turn_players, &st_turn_players);
+    sm_players.add_link(next_sub_turn_id, &st_turn_players, &st_turn_players);
 
-    sm_play.add_event_state_state_transition(init_play_id, &st_init_play, &st_await_play_start);
-    sm_play.add_event_state_state_transition(start_play_id, &st_await_play_start, &st_preplay);
-    sm_play.add_event_state_state_transition(card_on_table_id, &st_preplay, &st_turn_play);
-    sm_play.add_event_state_state_transition(card_on_table_id, &st_turn_play, &st_turn_play);
-    sm_play.add_event_state_state_transition(no_card_id, &st_turn_play, &st_final_play, &tr_game_over);
+    sm_play.add_link(init_play_id, &st_init_play, &st_await_play_start);
+    sm_play.add_link(start_play_id, &st_await_play_start, &st_preplay);
+    sm_play.add_link(card_on_table_id, &st_preplay, &st_turn_play);
+    sm_play.add_link(card_on_table_id, &st_turn_play, &st_turn_play);
+    sm_play.add_link(no_card_id, &st_turn_play, &st_final_play, &tr_game_over);
 
     auto [sm_players_cib, sm_players_cis] = sm_players.check_integrity();
     auto [sm_play_cib, sm_play_cis] = sm_play.check_integrity();
@@ -251,7 +251,7 @@ void DOM::init()
 
     sm_players.set_status_enabled(event(init_players_id, "init_players"));
     sm_play.set_status_enabled(event(init_play_id, "init_play"));
-    rm.set_status_enabled({ id_undef_value });
+    rm.set_status_enabled({ id_undef_cvalue });
     event e_start(start_play_id);
     rm.rise_event(e_start);
 }
@@ -467,14 +467,19 @@ void main_Game001()
     DOM ptr_dom;
     ptr_dom.init();
 
+    int i = 0;
+
     auto begin = std::chrono::steady_clock::now();
 
-    while (ptr_dom.bit());
+    while (ptr_dom.bit())
+    {
+        i++;
+    };
 
     auto end = std::chrono::steady_clock::now();
     auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
 
-    std::cout << "\n24.08.2021 time: 16000\n   current time: " << elapsed_ms.count() << "\n";
+    std::cout << "\n24.08.2021 time: 16000\n   current time: " << elapsed_ms.count() << " turns: " << i << "\n";
 
 }
 

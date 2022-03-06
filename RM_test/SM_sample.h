@@ -70,19 +70,19 @@ void main_SM()
     t32.add_guard(guard_always_true);
     t23.add_action(action2);
 
-    sm.add_event_state_state_transition(einit1.id, &si, &s1, &tinit1);
-    sm.add_event_state_state_transition(einit2.id, &si, &s2, &tinit2);
-    sm.add_event_state_state_transition(einit3.id, &si, &s3, &tinit3);
-    sm.add_event_state_state_transition(e12.id, &s1, &s2, &t12);
-    sm.add_event_state_state_transition(e21.id, &s2, &s1, &t21);
-    sm.add_event_state_state_transition(e32.id, &s3, &s2, &t32);
-    sm.add_event_state_state_transition(e23.id, &s2, &s3, &t23);
-    sm.add_event_state_state_transition(e13.id, &s1, &s3, &t13);
-    sm.add_event_state_state_transition(e31.id, &s3, &s1, &t31);
-    //sm.add_event_state_state_transition(e1final.id, &s1, &sf, &tfinal1);
-    sm.add_event_state_state_transition(e1final.id, &s1, &s3, &tfinal1);
-    //sm.add_essl(e2final.id, &s2, &sf, &tfinal2);
-    //sm.add_essl(e3final.id, &s3, &sf, &tfinal3);
+    sm.add_link(einit1.id, &si, &s1, &tinit1);
+    sm.add_link(einit2.id, &si, &s2, &tinit2);
+    sm.add_link(einit3.id, &si, &s3, &tinit3);
+    sm.add_link(e12.id, &s1, &s2, &t12);
+    sm.add_link(e21.id, &s2, &s1, &t21);
+    sm.add_link(e32.id, &s3, &s2, &t32);
+    sm.add_link(e23.id, &s2, &s3, &t23);
+    sm.add_link(e13.id, &s1, &s3, &t13);
+    sm.add_link(e31.id, &s3, &s1, &t31);
+    //sm.add_link(e1final.id, &s1, &sf, &tfinal1);
+    sm.add_link(e1final.id, &s1, &s3, &tfinal1);
+    //sm.add_link(e2final.id, &s2, &sf, &tfinal2);
+    //sm.add_link(e3final.id, &s3, &sf, &tfinal3);
 
     sm.set_status_enabled (einit1);
     std::cout << std::endl;
