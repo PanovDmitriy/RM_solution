@@ -150,8 +150,8 @@ public:
 
     Event() = delete;
 
-    Event( Id _id ) :
-        id( _id )
+    Event( Id id_ ) :
+        id( id_ )
     {
         if constexpr ( is_event_log )
         {
@@ -160,8 +160,8 @@ public:
     }
 
     template<typename T>
-    Event( Id _id, T&& param_ ) :
-        id( _id ), param{ std::forward<T>( param_ ) }
+    Event( Id id_, T&& param_ ) :
+        id( id_ ), param{ std::forward<T>( param_ ) }
     {
         if constexpr ( is_event_log )
         {
@@ -199,7 +199,7 @@ public:
     }
     void operator= ( Event&& rv_e ) noexcept
     {
-        const_cast<Id&>( id ) = std::move ( rv_e.id );
+        const_cast<Id&>( id ) = std::move ( const_cast<Id&>( rv_e.id ) );
         const_cast<std::any&>( rv_e.param ) = std::move( const_cast<std::any&>( rv_e.param ) );
         if constexpr ( is_event_log )
         {
