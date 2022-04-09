@@ -106,7 +106,7 @@ class transition_game_over
     : public Transition
 {
 private:
-    id_t no_card_id_ = -1;
+    Id no_card_id_;
 
 protected:
     void get_winner(const Event& ref_e)
@@ -127,7 +127,7 @@ protected:
     }
 
 public:
-    void set_no_card_id(id_t e_no_card_id)
+    void set_no_card_id(Id e_no_card_id)
     {
         no_card_id_ = e_no_card_id;
     }
@@ -213,13 +213,13 @@ public:
     friend class state_pre_play;
 
 public:
-    const id_t init_players_id = 10;
-    const id_t init_play_id = 20;
-    const id_t next_turn_id = 30;
-    const id_t next_sub_turn_id = 40;
-    const id_t start_play_id = 50;
-    const id_t card_on_table_id = 60;
-    const id_t no_card_id = 70;
+    const Id init_players_id = 10;
+    const Id init_play_id = 20;
+    const Id next_turn_id = 30;
+    const Id next_sub_turn_id = 40;
+    const Id start_play_id = 50;
+    const Id card_on_table_id = 60;
+    const Id no_card_id = 70;
 };
 
 void DOM::init()
@@ -251,7 +251,7 @@ void DOM::init()
 
     sm_players.set_status_enabled(Event(init_players_id, "init_players"));
     sm_play.set_status_enabled(Event(init_play_id, "init_play"));
-    rm.set_status_enabled({ id_undef_cvalue });
+    rm.set_status_enabled({ Id::Undef });
     Event e_start(start_play_id);
     rm.rise_event(e_start);
 }
