@@ -93,9 +93,10 @@ class Id
 public:
     static constexpr int Undef = -1;
 
-public:
+private:
     const int value = Undef;
 
+public:
     Id() = default;
 
     Id( int val ) :
@@ -114,11 +115,11 @@ public:
         const_cast<int&>( id.value ) = Id::Undef;
     }
 
-    void operator= ( const Id& id ) noexcept
+    void operator=( const Id& id ) noexcept
     {
         const_cast<int&>( value ) = id.value;
     }
-    void operator= ( Id&& id ) noexcept
+    void operator=( Id&& id ) noexcept
     {
         const_cast<int&>( value ) = id.value;
         const_cast<int&>( id.value ) = Id::Undef;
@@ -155,7 +156,7 @@ public:
     {
         if constexpr ( is_event_log )
         {
-            std::cout << "log: event(id) id: " << id.value << std::endl;
+            std::cout << "log: event(id) id: " << id.to_string() << std::endl;
         }
     }
 
@@ -165,7 +166,7 @@ public:
     {
         if constexpr ( is_event_log )
         {
-            std::cout << "log: event(id, template T&& param) id: " << id.value << std::endl;
+            std::cout << "log: event(id, template T&& param) id: " << id.to_string() << std::endl;
         }
     }
 
@@ -174,7 +175,7 @@ public:
     {
         if constexpr ( is_event_log )
         {
-            std::cout << "log: event(const event&) id: " << id.value << std::endl;
+            std::cout << "log: event(const event&) id: " << id.to_string() << std::endl;
         }
     }
 
@@ -184,7 +185,7 @@ public:
         const_cast<Id&>( e.id ) = Id::Undef;
         if constexpr ( is_event_log )
         {
-            std::cout << "log: event(event&&) id: " << id.value << std::endl;
+            std::cout << "log: event(event&&) id: " << id.to_string() << std::endl;
         }
     }
 
@@ -194,7 +195,7 @@ public:
         const_cast<std::any&>( param ) = ref_e.param;
         if constexpr ( is_event_log )
         {
-            std::cout << "log: op=(const event&) id: " << id.value << std::endl;
+            std::cout << "log: op=(const event&) id: " << id.to_string() << std::endl;
         }
     }
     void operator= ( Event&& rv_e ) noexcept
@@ -203,7 +204,7 @@ public:
         const_cast<std::any&>( rv_e.param ) = std::move( const_cast<std::any&>( rv_e.param ) );
         if constexpr ( is_event_log )
         {
-            std::cout << "log: op=(event&&) id: " << id.value << std::endl;
+            std::cout << "log: op=(event&&) id: " << id.to_string() << std::endl;
         }
     }
 
@@ -220,7 +221,7 @@ public:
     {
         if constexpr ( is_event_log )
         {
-            std::cout << "log: ~event id: " << id.value << std::endl;
+            std::cout << "log: ~event id: " << id.to_string() << std::endl;
         }
     };
 };
@@ -323,12 +324,12 @@ public:
 
     void do_action( const Event& ref_e ) override
     {
-        std::cout << "link " << name_ << " * event [ " << ", " << ref_e.id.value << " ]: action" << std::endl;
+        std::cout << "link " << name_ << " * event [ " << ", " << ref_e.id.to_string() << " ]: action" << std::endl;
     }
 
     bool is_guard_condition( const Event& ref_e ) override
     {
-        std::cout << "link " << name_ << " * event [ " << ", " << ref_e.id.value << " ]: guard_condition: true" << std::endl;
+        std::cout << "link " << name_ << " * event [ " << ", " << ref_e.id.to_string() << " ]: guard_condition: true" << std::endl;
 
         return true;
     }
@@ -499,15 +500,15 @@ public:
 protected:
     void do_entry_action( const Event& ref_e ) override
     {
-        std::cout << "state " << name_ << " * event [ " << ", " << ref_e.id.value << " ]: entry action" << std::endl;
+        std::cout << "state " << name_ << " * event [ " << ", " << ref_e.id.to_string() << " ]: entry action" << std::endl;
     }
     void do_exit_action( const Event& ref_e ) override
     {
-        std::cout << "state " << name_ << " * event [ " << ", " << ref_e.id.value << " ]: exit action" << std::endl;
+        std::cout << "state " << name_ << " * event [ " << ", " << ref_e.id.to_string() << " ]: exit action" << std::endl;
     }
     void do_internal_action( const Event& ref_e ) override
     {
-        std::cout << "state " << name_ << " * event [ " << ", " << ref_e.id.value << " ]: internal action" << std::endl;
+        std::cout << "state " << name_ << " * event [ " << ", " << ref_e.id.to_string() << " ]: internal action" << std::endl;
     }
 
 public:
@@ -731,7 +732,7 @@ public:
             std::cout << "\tstate " << a.first->to_string() << std::endl;
             for ( auto& [event_id, transit_to_state_t] : a.second )
             {
-                std::cout << "\t\tevent ID: " << event_id.value;
+                std::cout << "\t\tevent ID: " << event_id.to_string();
                 if ( !( transit_to_state_t.ptr_transition ) )
                 {
                     std::cout << " null link to ";
