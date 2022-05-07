@@ -32,8 +32,8 @@ struct IEventHandler;
 
 using EventPtr = std::shared_ptr<Event>;
 using EventCPtr = std::shared_ptr<const Event>;
-using IEventHandlerPtr = std::shared_ptr<IEventHandler>;
-using IMachineControllerPtr = std::shared_ptr<IMachineController>;
+using EventHandlerPtr = std::shared_ptr<IEventHandler>;
+using MachineControllerPtr = std::shared_ptr<IMachineController>;
 using TransitionPtr = std::shared_ptr<Transition>;
 using StatePtr = std::shared_ptr<State>;
 using InitialStatePtr = std::shared_ptr<InitialState>;
@@ -41,8 +41,8 @@ using FinalStatePtr = std::shared_ptr<FinalState>;
 
 using Result = std::tuple <bool, std::string>;
 
-using ActionFn = std::function<void( EventCPtr, IEventHandlerPtr )> ;
-using GuardFn = std::function<bool( EventCPtr, IEventHandlerPtr )>;
+using ActionFn = std::function<void( EventCPtr, EventHandlerPtr )>;
+using GuardFn = std::function<bool( EventCPtr, EventHandlerPtr )>;
 
 
 enum class Status
@@ -63,40 +63,9 @@ struct IMachineController
     virtual void SetStatus( Status, EventCPtr = {} ) = 0;
     virtual Status GetStatus() = 0;
     virtual void Erase() = 0;
-    virtual IEventHandlerPtr GetEventHandler() = 0;
+    virtual EventHandlerPtr GetEventHandler() = 0;
 };
 
-
-/// event ///
-
-//class param_exaple
-//{
-//private:
-//    int* ptr = nullptr;
-
-//public:
-//    param_exaple()
-//    {
-//        ptr = new int[10];
-//    }
-
-//    param_exaple(const param_exaple& p)
-//    {
-//        ptr = new int[10];
-//        mem_copy(p, ptr);
-//    }
-
-//    param_exaple(param_exaple&& p) noexcept
-//    {
-//        ptr = p.ptr;
-//        p.ptr = nullptr;
-//    }
-
-//    ~param_exaple()
-//    {
-//        delete ptr;
-//    }
-//};
 
 class Id
 {
@@ -243,12 +212,12 @@ protected:
     std::vector<ActionFn> actions_;
     std::vector<GuardFn> guards_;
 
-    IEventHandlerPtr eventHandler_; // for rise new events into actions
+    EventHandlerPtr eventHandler_; // for rise new events into actions
 
 public:
     Transition() = default;
 
-    Transition( std::vector<ActionFn> actions, std::vector<GuardFn> guards, IEventHandlerPtr eventHandler = {} ) :
+    Transition( std::vector<ActionFn> actions, std::vector<GuardFn> guards, EventHandlerPtr eventHandler = {} ) :
         actions_ ( actions ), 
         guards_ ( guards ),
         eventHandler_ ( eventHandler )
@@ -313,12 +282,12 @@ protected:
     std::vector<ActionFn> exitActions_;
     std::vector<ActionFn> internalActions_;
 
-    IEventHandlerPtr eventHandler_; // for rise new events into actions
+    EventHandlerPtr eventHandler_; // for rise new events into actions
 
 public:
     State() = default;
 
-    State( std::vector<ActionFn> entryActions, std::vector<ActionFn> internalActions, std::vector<ActionFn> exitActions, IEventHandlerPtr eventHandler = {} ) :
+    State( std::vector<ActionFn> entryActions, std::vector<ActionFn> internalActions, std::vector<ActionFn> exitActions, EventHandlerPtr eventHandler = {} ) :
         entryActions_ ( entryActions ), 
         internalActions_ ( internalActions ), 
         exitActions_ ( exitActions ),
@@ -484,7 +453,10 @@ private:
     Status currStatus_ = Status::Disabled;
 
 public:
-    StateMachine() = default;
+    StateMachine()
+    {
+        initStatusChanges();
+    }
 
 public:
     Result RiseEvent( EventCPtr event ) override // инициировать событие
@@ -494,9 +466,9 @@ public:
     }
 
 public:
-    IEventHandlerPtr GetEventHandler() override
+    EventHandlerPtr GetEventHandler() override
     {
-        return IEventHandlerPtr( this );
+        return EventHandlerPtr( this );
     }
 
 public:
@@ -758,20 +730,20 @@ private:
         statusChanges_[{Status::Enabled, Status::Paused}] = [this]( EventCPtr )
         {
             currStatus_ = Status::Paused;
-        };;
+        };
 
         statusChanges_[{Status::Paused, Status::Enabled}] = [this]( EventCPtr event )
         {
             currStatus_ = Status::Enabled;
             RiseEvent( event );
-        };;
+        };
 
         statusChanges_[{Status::Disabled, Status::Enabled}] = [this]( EventCPtr event )
         {
             currState_ = initialState_;
             currStatus_ = Status::Enabled;
             RiseEvent( event );
-        };;
+        };
     }
 
 public:
@@ -800,17 +772,17 @@ class RuleMachine :
     }
 
 private:
-    std::vector<IMachineControllerPtr> machines_;
+    std::vector<MachineControllerPtr> machines_;
     Status currStatus_ = Status::Disabled;
 
 public:
-    void add_machine( IMachineControllerPtr machine )
+    void add_machine( MachineControllerPtr machine )
     {
         machines_.push_back( machine );
     }
 
 public:
-    IEventHandlerPtr GetEventHandler() override
+    EventHandlerPtr GetEventHandler() override
     {
         return std::make_shared<IEventHandler>( this );
     }
@@ -818,12 +790,12 @@ public:
     Result RiseEvent( EventCPtr event ) override
     {
         if ( currStatus_ != Status::Enabled )
+        for ( auto m : machines_ )
+        {
         {
             return { true, msg_().true_ok };
         }
 
-        for ( auto m : machines_ )
-        {
             if ( m )
             {
                 auto handler = m.get()->GetEventHandler();
