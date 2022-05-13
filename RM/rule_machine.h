@@ -468,13 +468,13 @@ private:
     std::queue<EventCPtr> eventQueue_;
 
 private:
-    struct TransitToState
+    struct LinkToState
     {
         TransitionPtr transition;
         StatePtr targetState;
     };
 
-    using Table = std::map<StatePtr /*source state*/, std::multimap<Id /*event id*/, TransitToState>>;
+    using Table = std::map<StatePtr /*source state*/, std::multimap<Id /*event id*/, LinkToState>>;
     Table table_;
 
     StatePtr currState_;
@@ -533,24 +533,24 @@ protected:
 
         // find links from curr state to new state by event in tab
         auto& mmap_ref = itTable->second;
-        TransitToState* ptrTransitToState = nullptr;
+        LinkToState* ptrLinkToState = nullptr;
 
         auto itTransitsByEvent = mmap_ref.equal_range( event->id ); // transits by event may be multiple
 
         // find valid transit
-        if ( !std::any_of( itTransitsByEvent.first, itTransitsByEvent.second, [&]( std::pair<const Id, TransitToState>& pr )
+        if ( !std::any_of( itTransitsByEvent.first, itTransitsByEvent.second, [&]( std::pair<const Id, LinkToState>& pr )
         {
-            TransitToState& transit = pr.second;
+            LinkToState& transit = pr.second;
             if ( !transit.transition ) // if link is null, then success. link can be NULL. Guard condition will not test
             {
-                ptrTransitToState = &transit;
+                ptrLinkToState = &transit;
                 return true;
             }
             else
             {
                 if ( transit.transition->isGuardCondition( event ) )
                 {
-                    ptrTransitToState = &transit;
+                    ptrLinkToState = &transit;
                     return true;
                 }
             }
@@ -560,7 +560,7 @@ protected:
             return { true, msg_().true_reject };
         };
 
-        if ( !( ptrTransitToState->targetState ) )
+        if ( !( ptrLinkToState->targetState ) )
         {
             return { false, msg_().false_target_state_null };
         }
@@ -568,12 +568,12 @@ protected:
         /// Ok! change state now! ///
         currState_->doUnactivate( event );
 
-        if ( ptrTransitToState->transition )
+        if ( ptrLinkToState->transition )
         {
-            ptrTransitToState->transition->doAction( event );
+            ptrLinkToState->transition->doAction( event );
         }
 
-        currState_ = ptrTransitToState->targetState;
+        currState_ = ptrLinkToState->targetState;
 
         if ( currState_ == std::static_pointer_cast<State>( finalState_ ) )
         {
@@ -638,10 +638,10 @@ public:
         for ( auto& a : table_ )
         {
             std::cout << "\tstate " << a.first->to_string() << std::endl;
-            for ( auto& [eventID, transitToState] : a.second )
+            for ( auto& [eventID, linkToState] : a.second )
             {
                 std::cout << "\t\tevent ID: " << eventID.to_string();
-                if ( !transitToState.transition )
+                if ( !linkToState.transition )
                 {
                     std::cout << " null link to ";
                 }
@@ -649,21 +649,13 @@ public:
                 {
                     std::cout << " not null link to ";
                 }
-                std::cout << transitToState.targetState->to_string() << std::endl;
+                std::cout << linkToState.targetState->to_string() << std::endl;
             }
         }
     }
 
     Result check_integrity()
     {
-        // final не может быть исходным
-        // init не может быть целевым
-        // init не может быть null
-        // все исходные и целевые должы быть не null
-        // из init должен быть переход
-        // в каждое состояние (кроме init state) должен существовать переход
-        // примечение: состояние (кролме init) не обязано быть исходным
-
         if ( !initialState_ )
         {
             return { false, "Init state is null" };
@@ -691,19 +683,19 @@ public:
                 return { false, "Final state is source state" };
             }
 
-            for ( auto& [eventID, transitToState] : toState )
+            for ( auto& [eventID, linkToState] : toState )
             {
-                if ( transitToState.targetState == nullptr )
+                if ( linkToState.targetState == nullptr )
                 {
                     return { false, "Target state is null" };
                 }
 
-                if ( transitToState.targetState == iState )
+                if ( linkToState.targetState == iState )
                 {
                     return { false, "Init state is target state" };
                 }
 
-                targetStates.insert( transitToState.targetState );
+                targetStates.insert( linkToState.targetState );
             }
         }
 
