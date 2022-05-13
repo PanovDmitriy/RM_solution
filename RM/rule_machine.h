@@ -537,7 +537,7 @@ protected:
             return { false, msg_().false_target_state_null };
         }
 
-        /// Ok! change state now! ///
+        /// change state ///
         currState_->doUnactivate( event );
 
         if ( ptrLinkToState->transition )
@@ -692,7 +692,6 @@ public:
         return { true, msg_().true_ok };
     }
 
-    // + control methods sm
     Status GetStatus() override
     {
         return currStatus_;
@@ -819,7 +818,6 @@ public:
     }
 
 public:
-    // + control methods sm
     Status GetStatus() override
     {
         return currStatus_;
