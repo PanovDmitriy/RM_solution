@@ -33,7 +33,7 @@ struct IEventHandler;
 using EventPtr = std::shared_ptr<Event>;
 using EventCPtr = std::shared_ptr<const Event>;
 using EventHandlerPtr = std::shared_ptr<IEventHandler>;
-using MachineControllerPtr = std::shared_ptr<IMachineController>;
+using MachinePtr = std::shared_ptr<IMachine>;
 using TransitionPtr = std::shared_ptr<Transition>;
 using StatePtr = std::shared_ptr<State>;
 using InitialStatePtr = std::shared_ptr<InitialState>;
@@ -58,7 +58,7 @@ struct IEventHandler
     virtual Result ReleaseEvent() = 0;
 };
 
-struct IMachineController
+struct IMachine
 {
     virtual void SetStatus( Status, EventCPtr = {} ) = 0;
     virtual Status GetStatus() = 0;
@@ -72,7 +72,7 @@ class Id
 public:
     static constexpr int Undef = -1;
 
-private:
+protected:
     const int value_ = Undef;
 
 public:
@@ -426,7 +426,7 @@ public:
 
 class StateMachine :
     public IEventHandler,
-    public IMachineController
+    public IMachine
 {
     inline auto msg_()
     {
@@ -756,7 +756,7 @@ public:
 
 class RuleMachine :
     public IEventHandler,
-    public IMachineController
+    public IMachine
 {
     inline auto msg_()
     {
@@ -764,11 +764,11 @@ class RuleMachine :
     }
 
 private:
-    std::vector<MachineControllerPtr> machines_;
+    std::vector<MachinePtr> machines_;
     Status currStatus_ = Status::Disabled;
 
 public:
-    void add_machine( MachineControllerPtr machine )
+    void AddMachine( MachinePtr machine )
     {
         machines_.push_back( machine );
     }
