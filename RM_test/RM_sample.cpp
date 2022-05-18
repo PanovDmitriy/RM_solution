@@ -13,7 +13,7 @@
 #include "Game001_sample.h"
 #include "SM_sample.h"
 
-using namespace rm;
+using namespace Machines;
 
 
 

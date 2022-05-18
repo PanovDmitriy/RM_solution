@@ -6,7 +6,7 @@
 
 constexpr bool is_test_cardset = true;
 
-using namespace rm;
+using namespace Machines;
 
 
 class state_turn_player;
@@ -62,7 +62,7 @@ public:
     }
 
 protected:
-    void do_entry_action(const Event& ref_e) override;
+    void doEntryAction_( EventCPtr ref_e) override;
 
 };
 
@@ -80,7 +80,7 @@ public:
     }
 
 protected:
-    void do_entry_action(const Event& ref_e) override;
+    void doEntryAction_( EventCPtr ref_e) override;
 
 };
 
@@ -98,7 +98,7 @@ public:
     }
 
 protected:
-    void do_entry_action(const Event& ref_e) override;
+    void doEntryAction_( EventCPtr ref_e) override;
 
 };
 
@@ -106,17 +106,17 @@ class transition_game_over
     : public Transition
 {
 private:
-    id_t no_card_id_ = -1;
+    Id no_card_id_;
 
 protected:
-    void get_winner(const Event& ref_e)
+    void get_winner( EventCPtr ref_e)
     {
-        if (ref_e.id == no_card_id_ && no_card_id_ >= 0)
+        if (ref_e->id == no_card_id_ && no_card_id_ >= 0)
         {
             int gamer_id = -1;
             try
             {
-                gamer_id = std::any_cast<int>(ref_e.param);
+                gamer_id = std::any_cast<int>(ref_e->param);
             }
             catch (const std::bad_any_cast&)
             {
@@ -127,12 +127,12 @@ protected:
     }
 
 public:
-    void set_no_card_id(id_t e_no_card_id)
+    void set_no_card_id(Id e_no_card_id)
     {
         no_card_id_ = e_no_card_id;
     }
 
-    void do_action(const Event& ref_e) override
+    void doAction( EventCPtr ref_e) override
     {
         get_winner(ref_e);
     }
@@ -184,9 +184,9 @@ public:
             return false;
         }
 
-        if (sm_players.get_status() == status::enabled && sm_play.get_status() == status::enabled)
+        if (sm_players.GetStatus() == Status::Enabled && sm_play.GetStatus() == Status::Enabled)
         {
-            rm.release_event();
+            rm.ReleaseEvent();
             return true;
         }
 
@@ -195,9 +195,9 @@ public:
 
     void init();
 
-    inline IEventHandler* get_event_handler()
+    inline EventHandlerPtr get_event_handler()
     {
-        return rm.get_event_handler();
+        return rm.GetEventHandler();
     }
 
     void reset()
@@ -213,13 +213,13 @@ public:
     friend class state_pre_play;
 
 public:
-    const id_t init_players_id = 10;
-    const id_t init_play_id = 20;
-    const id_t next_turn_id = 30;
-    const id_t next_sub_turn_id = 40;
-    const id_t start_play_id = 50;
-    const id_t card_on_table_id = 60;
-    const id_t no_card_id = 70;
+    const Id init_players_id = 10;
+    const Id init_play_id = 20;
+    const Id next_turn_id = 30;
+    const Id next_sub_turn_id = 40;
+    const Id start_play_id = 50;
+    const Id card_on_table_id = 60;
+    const Id no_card_id = 70;
 };
 
 void DOM::init()
@@ -230,7 +230,7 @@ void DOM::init()
 
     tr_game_over.set_no_card_id(no_card_id);
 
-    rm.add_machine(&sm_players);
+    rm.AddMachine(sm_players);
     rm.add_machine(&sm_play);
 
     sm_players.add_link(init_players_id, &st_init_players, &st_await_player_starts);
@@ -251,7 +251,7 @@ void DOM::init()
 
     sm_players.set_status_enabled(Event(init_players_id, "init_players"));
     sm_play.set_status_enabled(Event(init_play_id, "init_play"));
-    rm.set_status_enabled({ id_undef_cvalue });
+    rm.set_status_enabled({ Id::Undef });
     Event e_start(start_play_id);
     rm.rise_event(e_start);
 }

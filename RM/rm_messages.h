@@ -2,7 +2,7 @@
 
 #include "singleton.h"
 
-namespace rm // rule machine
+namespace Machines // rule machine
 {
     struct base_messages
     {
@@ -92,4 +92,4 @@ namespace rm // rule machine
         }
     };
 
-} //namespace rm
+} //namespace Machines
