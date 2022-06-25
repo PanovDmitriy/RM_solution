@@ -776,7 +776,7 @@ private:
     Status currStatus_ = Status::Disabled;
 
 public:
-    void add_machine( MachineControllerPtr machine )
+    void addMachine( MachineControllerPtr machine )
     {
         machines_.push_back( machine );
     }

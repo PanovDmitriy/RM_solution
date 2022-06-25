@@ -230,8 +230,8 @@ void DOM::init()
 
     tr_game_over.setNoCardID(no_card_id);
 
-    rm.add_machine(sm_players);
-    rm.add_machine(sm_play);
+    rm.addMachine(std::make_shared<IMachineController>(sm_players));
+    rm.addMachine( std::make_shared<IMachineController>( sm_play));
 
     sm_players.add_link(init_players_id, &st_init_players, &st_await_player_starts);
     sm_players.add_link(next_turn_id, &st_await_player_starts, &st_turn_players);
