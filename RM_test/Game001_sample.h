@@ -15,31 +15,31 @@ class state_turn_play;
 class DOM;
 
 
-struct test_param
+struct TestParam
 {
     int val = -1;
     const int time = rand();
 
-    test_param() :
+    TestParam() :
         val(1)
     {
         std::cout << time << "::test_param.construct() val: " << val << std::endl;
     }
 
-    test_param(const test_param& tp) :
+    TestParam(const TestParam& tp) :
         val(tp.val)
     {
         std::cout << time << "::test_param.construct(& " << tp.time << ") val: " << val << std::endl;
     }
 
-    test_param(test_param&& tp) noexcept :
+    TestParam( TestParam&& tp) noexcept :
         val(tp.val)
     {
         std::cout << time << "::test_param.construct(&& " << tp.time << ") val: " << val << std::endl;
         tp.val = 0;
     }
 
-    ~test_param()
+    ~TestParam()
     {
         std::cout << time << "::test_param.destruct() val: " << val << std::endl;
         int val = -1;
@@ -47,94 +47,94 @@ struct test_param
 };
 
 
-class state_turn_player :
+class StateTurnPlayer :
     public State
 {
 public:
     DOM* ptr_dom = nullptr;
 
 public:
-    state_turn_player() = default;
+    StateTurnPlayer() = default;
 
-    void set_dom(DOM* dom_)
+    void setDom(DOM* dom_)
     {
         ptr_dom = dom_;
     }
 
 protected:
-    void doEntryAction_( EventCPtr ref_e) override;
+    void doEntryAction_( EventCPtr event ) override;
 
 };
 
 
-class state_pre_play :
+class StatePrePlay :
     public State
 {
 public:
     DOM* ptr_dom = nullptr;
 
 public:
-    void set_dom(DOM* dom_)
+    void setDom(DOM* dom_)
     {
         ptr_dom = dom_;
     }
 
 protected:
-    void doEntryAction_( EventCPtr ref_e) override;
+    void doEntryAction_( EventCPtr event ) override;
 
 };
 
 
-class state_turn_play :
+class StateTurnPlay :
     public State
 {
 private:
     DOM* ptr_dom = nullptr;
 
 public:
-    void set_dom(DOM* dom_)
+    void setDom(DOM* dom_)
     {
         ptr_dom = dom_;
     }
 
 protected:
-    void doEntryAction_( EventCPtr ref_e) override;
+    void doEntryAction_( EventCPtr event ) override;
 
 };
 
-class transition_game_over
+class TransitionGameOver
     : public Transition
 {
 private:
-    Id no_card_id_;
+    Id noCardID_;
 
 protected:
-    void get_winner( EventCPtr ref_e)
+    void getWinner( EventCPtr event )
     {
-        if (ref_e->id == no_card_id_ && no_card_id_ >= 0)
+        if ( event->id == noCardID_ && noCardID_ >= 0 )
         {
-            int gamer_id = -1;
+            int gamerID = -1;
             try
             {
-                gamer_id = std::any_cast<int>(ref_e->param);
+                gamerID = std::any_cast<int>( event->param );
             }
-            catch (const std::bad_any_cast&)
+            catch ( const std::bad_any_cast& )
             {
             }
 
-            std::cout << "Победитель: player" << ((gamer_id == -1) ? "?" : std::to_string(gamer_id)) << std::endl;
+            std::cout << "Победитель: player" << (( gamerID == -1) ? "?" : std::to_string( gamerID )) << std::endl;
         }
     }
 
 public:
-    void set_no_card_id(Id e_no_card_id)
+    void setNoCardID( Id noCardID )
     {
-        no_card_id_ = e_no_card_id;
+        noCardID_ = noCardID;
     }
 
-    void doAction( EventCPtr ref_e) override
+    void doAction( EventCPtr event ) override
     {
-        get_winner(ref_e);
+        getWinner( event );
     }
 
 };
@@ -157,15 +157,15 @@ public:
 
     InitialState st_init_players;
     State st_await_player_starts;
-    state_turn_player st_turn_players;
+    StateTurnPlayer st_turn_players;
 
     InitialState st_init_play;
     FinalState st_final_play;
     State st_await_play_start;
-    state_pre_play st_preplay;
-    state_turn_play st_turn_play;
+    StatePrePlay st_preplay;
+    StateTurnPlay st_turn_play;
 
-    transition_game_over tr_game_over;
+    TransitionGameOver tr_game_over;
 
 public:
     DOM() :
@@ -195,7 +195,7 @@ public:
 
     void init();
 
-    inline EventHandlerPtr get_event_handler()
+    inline EventHandlerPtr GetEventHandler()
     {
         return rm.GetEventHandler();
     }
@@ -224,14 +224,14 @@ public:
 
 void DOM::init()
 {
-    st_turn_players.set_dom(this);
-    st_preplay.set_dom(this);
-    st_turn_play.set_dom(this);
+    st_turn_players.setDom(this);
+    st_preplay.setDom(this);
+    st_turn_play.setDom(this);
 
-    tr_game_over.set_no_card_id(no_card_id);
+    tr_game_over.setNoCardID(no_card_id);
 
-    rm.AddMachine(sm_players);
-    rm.add_machine(&sm_play);
+    rm.add_machine(sm_players);
+    rm.add_machine(sm_play);
 
     sm_players.add_link(init_players_id, &st_init_players, &st_await_player_starts);
     sm_players.add_link(next_turn_id, &st_await_player_starts, &st_turn_players);
