@@ -80,7 +80,7 @@ namespace Machines // rule machine
         }
     };
 
-    using sgt_messages = singleton_const_struct<base_messages>;
+    using sgt_messages = singleton_const_data<base_messages>;
 
     //template <typename TMessages>
     //struct sgt_messages :

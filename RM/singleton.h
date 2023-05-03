@@ -52,14 +52,59 @@ public:
     }
 };
 
-template <typename TStruct>
-struct singleton_const_struct :
-    singleton<singleton_const_struct<TStruct>>
+template <typename TData>
+struct singleton_const_data :
+    singleton<singleton_const_data<TData>>
 {
-    const TStruct s;
+    const TData data;
 
-    void set(const TStruct& s_)
+    void set(const TData& data_)
     {
-        const_cast<TStruct&>(s) = s_;
+        const_cast<TData&>(data) = data_;
     }
 };
+
+// // example: using diff. data sets
+//
+//struct const_strings
+//{
+//    const std::string str1;
+//    const std::string str2;
+//};
+//
+//struct const_strings_a :
+//    const_strings
+//{
+//    const_strings_a() :
+//        const_strings
+//    {
+//    "aaa1",
+//    "aaa2"
+//    }
+//    {
+//    }
+//};
+//
+//struct const_strings_b :
+//    const_strings
+//{
+//    const_strings_b() :
+//        const_strings
+//    {
+//    "bbb1",
+//    "bbb2"
+//    }
+//    {
+//    }
+//};
+//
+//using sgt_strings = singleton_const_data<const_strings>;
+//
+//main()
+//{
+//    sgt_strings::get_instance().set(const_strings_a());
+//    std::cout << sgt_strings::get_instance().data.str1 << std::endl;
+//    sgt_strings::get_instance().set(const_strings_b());
+//    std::cout << sgt_strings::get_instance().data.str1 << std::endl;
+//}
+
