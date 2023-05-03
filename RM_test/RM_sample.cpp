@@ -21,7 +21,7 @@ int main()
 {
     setlocale(LC_ALL, "Russian");
 
-    sgt_messages <base_messages>::get_instance().set(msgs_ru ());
+    sgt_messages::get_instance().set(msgs_ru ());
 
     //main_SM();
 

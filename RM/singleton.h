@@ -52,3 +52,14 @@ public:
     }
 };
 
+template <typename TStruct>
+struct singleton_const_struct :
+    singleton<singleton_const_struct<TStruct>>
+{
+    const TStruct s;
+
+    void set(const TStruct& s_)
+    {
+        const_cast<TStruct&>(s) = s_;
+    }
+};

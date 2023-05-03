@@ -80,16 +80,18 @@ namespace Machines // rule machine
         }
     };
 
-    template <typename TMessages>
-    struct sgt_messages :
-        singleton<sgt_messages<TMessages>>
-    {
-        const TMessages msgs;
+    using sgt_messages = singleton_const_struct<base_messages>;
 
-        void set(const TMessages& msgs_)
-        {
-            const_cast<TMessages&>(msgs) = msgs_;
-        }
-    };
+    //template <typename TMessages>
+    //struct sgt_messages :
+    //    singleton<sgt_messages<TMessages>>
+    //{
+    //    const TMessages msgs;
+
+    //    void set(const TMessages& msgs_)
+    //    {
+    //        const_cast<TMessages&>(msgs) = msgs_;
+    //    }
+    //};
 
 } //namespace Machines
