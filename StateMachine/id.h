@@ -2,13 +2,16 @@
 
 #include <string>
 #include <iostream>
+#include <utility>
 
 
 
 namespace Machines
 {
     template <class T, T undefault_value> class Id;
-    using ID = Id<int, -1>;
+    
+    using ID = Id<int, -1>; // default id type
+
 
     template <class T, T undefault_value>
     class Id final
@@ -38,10 +41,24 @@ namespace Machines
             id.value_ = Id::Undef;
         }
 
-        void operator=(T id_value) = delete;
-        void operator=(T&& id_value) = delete;
-        void operator=(const Id<T, undefault_value>& id) = delete;
-        void operator=(Id<T, undefault_value>&& id) = delete;
+        void operator=(const Id<T, undefault_value>& id) noexcept
+        {
+            value_ = id.value_;
+        }
+        void operator=(Id<T, undefault_value>&& id) noexcept
+        {
+            value_ = std::move(id.value_);
+            id.value_ = Id::Undef;
+        }
+        void operator=(const T& id_value_) noexcept
+        {
+            value_ = id_value_;
+        }
+        void operator=(T&& id_value_) noexcept
+        {
+            value_ = std::move(id_value_);
+            id_value_ = Id::Undef;
+        }
 
         bool operator==(const Id<T, undefault_value>& other) const
         {
@@ -58,21 +75,6 @@ namespace Machines
         }
 
     public:
-        inline T get() const
-        {
-            return value_;
-        }
-
-        inline void set(T& val)
-        {
-            value_ = val;
-        }
-
-        inline void set(T&& val)
-        {
-            value_ = std::move (val);
-        }
-
         inline const std::string to_string() const
         {
             if constexpr (std::is_arithmetic_v<T>)
@@ -87,12 +89,6 @@ namespace Machines
     };
 
 
-    inline void TraceCon(auto s)
-    {
-#if _DEBUG 
-        std::cout << s << std::endl;
-#endif
-    }
 
 
 } // namespace Machines

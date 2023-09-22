@@ -18,6 +18,9 @@
     <ClInclude Include="singleton.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
+    <ClInclude Include="debug.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FoundationConsoleTest.cpp">

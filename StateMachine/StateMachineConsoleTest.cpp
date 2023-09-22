@@ -17,11 +17,12 @@ int main()
 
     double d = 33.3;
 
-    id.set(std::move(d));
+    id = std::move (1.2);
 
-    d = 55.5;
+    //d = 55.5;
 
-    std::cout << "Hello World!\n" << "id: " << id.to_string();
+    std::cout << "id: " << id.to_string() << std::endl;
+    std::cout << "d: " << d << std::endl;
 }
 
 
