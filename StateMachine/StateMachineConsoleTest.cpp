@@ -6,7 +6,7 @@
 
 #include <iostream>
 
-#include "base.h"
+#include "id.h"
 
 
 int main()
@@ -17,7 +17,7 @@ int main()
 
     double d = 33.3;
 
-    id = std::move (1.2);
+    id = std::move (d);
 
     //d = 55.5;
 

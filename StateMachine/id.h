@@ -8,16 +8,16 @@
 
 namespace Machines
 {
-    template <class T, T undefault_value> class Id;
+    template <class T, T undefined_value> class Id;
     
     using ID = Id<int, -1>; // default id type
 
-
-    template <class T, T undefault_value>
+    
+    template <class T, T undefined_value>
     class Id final
     {
     public:
-        static constexpr T Undef = undefault_value; // default const value
+        static constexpr T Undef = undefined_value; // undefined is default const value
 
     private:
         T value_ = Undef;
@@ -30,22 +30,22 @@ namespace Machines
         {
         }
 
-        Id(const Id<T, undefault_value>& id) :
+        Id(const Id<T, undefined_value>& id) :
             value_(id.value_)
         {
         }
 
-        explicit Id(Id<T, undefault_value>&& id) noexcept :
+        explicit Id(Id<T, undefined_value>&& id) noexcept :
             value_(id.value_)
         {
             id.value_ = Id::Undef;
         }
 
-        void operator=(const Id<T, undefault_value>& id) noexcept
+        void operator=(const Id<T, undefined_value>& id) noexcept
         {
             value_ = id.value_;
         }
-        void operator=(Id<T, undefault_value>&& id) noexcept
+        void operator=(Id<T, undefined_value>&& id) noexcept
         {
             value_ = std::move(id.value_);
             id.value_ = Id::Undef;
@@ -60,11 +60,11 @@ namespace Machines
             id_value_ = Id::Undef;
         }
 
-        bool operator==(const Id<T, undefault_value>& other) const
+        bool operator==(const Id<T, undefined_value>& other) const
         {
             return value_ == other.value_;
         }
-        std::weak_ordering operator<=>(const Id<T, undefault_value>& other) const
+        std::weak_ordering operator<=>(const Id<T, undefined_value>& other) const
         {
             return value_ <=> other.value_;
         }
