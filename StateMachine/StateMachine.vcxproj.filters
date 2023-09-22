@@ -15,16 +15,16 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="rule_machine.h">
+    <ClInclude Include="event.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="rm_messages.h">
+    <ClInclude Include="base.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="Info.txt" />
-    <Text Include="todo.txt" />
-    <Text Include="Description.txt" />
+    <ClCompile Include="StateMachineConsoleTest.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

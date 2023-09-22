@@ -81,6 +81,10 @@ namespace Machines // rule machine
     };
 
     using sgt_messages = singleton_const_data<base_messages>;
+    inline auto msg_()
+    {
+        return sgt_messages <base_messages>::get_instance().msgs;
+    }
 
     //template <typename TMessages>
     //struct sgt_messages :
